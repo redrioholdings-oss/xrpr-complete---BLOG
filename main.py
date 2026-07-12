@@ -23,7 +23,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 
-APP_VERSION = "v14"
+APP_VERSION = "v15"
 LAST_UPDATED = "July 12, 2026"
 START_TIME = time.time()
 
@@ -197,11 +197,11 @@ header.site-header {
 .hdr-astronaut img { height: 288px; width: auto; opacity: 0.95; display: block; }
 .brand-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .sat-icon { width: 48px; height: 48px; border-radius: 12px; display: block; }
+.brand-col { display: flex; flex-direction: column; }
 .brand-title { color: #ffffff; font-size: 24px; font-weight: bold; font-style: italic; font-family: Calibri, sans-serif; }
-.brand-line-2 { color: #7fa8c9; font-size: 15px; font-family: Calibri, sans-serif; margin-top: 4px; }
-.brand-line-2 em { font-style: italic; }
-.brand-line-3 { color: #c3c7d1; font-size: 13px; font-family: Calibri, sans-serif; margin-top: 2px; }
-.brand-line-4 { color: var(--muted); font-size: 12px; font-family: Calibri, sans-serif; margin-top: 2px; }
+.brand-title .blog-word { color: #ffffff; font-style: italic; }
+.brand-tagline { color: var(--hdr); font-size: 16px; font-family: Calibri, sans-serif; margin-top: 4px; }
+.brand-tagline em { font-style: italic; }
 .cta-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
 .visit-btn {
     background: transparent;
@@ -215,7 +215,6 @@ header.site-header {
     font-family: Calibri, sans-serif;
 }
 .suffixes { color: #ffffff; font-size: 15px; }
-.blog-tag { color: var(--hdr); font-weight: bold; font-style: italic; font-size: 19px; margin-left: 4px; }
 .hdr-right { text-align: right; font-size: 12px; color: var(--muted); line-height: 1.6; white-space: nowrap; }
 .live-badge { display: inline-flex; align-items: center; gap: 6px; color: #6bb072; font-weight: bold; font-size: 13px; }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tq); box-shadow: 0 0 0 0 rgba(0,229,204,0.6); animation: pulse 1.6s infinite; }
@@ -1706,15 +1705,14 @@ HEADER_BLOCK = '''
   <div class="hdr-left-block">
     <div class="brand-row">
       <img class="sat-icon" src="data:image/png;base64,''' + SAT_ICON_B64 + '''" alt="XRPRadar Satellite">
-      <span class="brand-title">XRPRadar</span>
+      <div class="brand-col">
+        <span class="brand-title">XRPRadar <span class="blog-word">Blog</span></span>
+        <div class="brand-tagline">The <em>NEW</em> XRP Intelligence Standard</div>
+      </div>
     </div>
-    <div class="brand-line-2">The <em>NEW</em> XRP Intelligence Standard</div>
-    <div class="brand-line-3">Every Signal. Every Region. Every Hour.</div>
-    <div class="brand-line-4">306+ sources over 8 global regions signaling 24/7</div>
     <div class="cta-row">
       <a class="visit-btn" href="https://xrpradar.com" target="_blank" rel="noopener">Visit xrpradar</a>
       <span class="suffixes">.com, .net, .xyz</span>
-      <span class="blog-tag">Blog</span>
     </div>
   </div>
   <div class="hdr-astronaut">
