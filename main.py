@@ -13,7 +13,7 @@ from flask import (
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "xrpradar-blog-dev-key-change-me")
+app.secret_key = os.environ.get("SECRET_KEY", "xrpcomplete-blog-dev-key-change-me")
 
 ADMIN_PASSWORD = os.environ.get("ADMIN_PASSWORD", "changeme")
 DATA_DIR = os.environ.get("DATA_DIR", "/data")
@@ -23,7 +23,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 
-APP_VERSION = "v15"
+APP_VERSION = "v16"
 LAST_UPDATED = "July 12, 2026"
 START_TIME = time.time()
 
@@ -1692,7 +1692,7 @@ FOOTER_BLOCK = """
   <div>Server Time (UTC): {{ server_time }}</div>
 </div>
 <footer class="site-footer">
-  <span>\u00a9\ufe0f Copyright 2026 Red Rio Ventures, LLC. All rights reserved globally. &middot; Visitors: {{ visitor_count }}</span>
+  <span>\u00a9\ufe0f Copyright 2026 XRP Complete / Red Rio Ventures, LLC. All rights reserved globally. &middot; Visitors: {{ visitor_count }}</span>
   <span class="row">
     <button class="btn secondary small" onclick="document.getElementById(\'debug-panel\').style.display = document.getElementById(\'debug-panel\').style.display === \'block\' ? \'none\' : \'block\';">Debug</button>
     <span>{{ version }} &middot; Last update: {{ last_updated }}</span>
@@ -1704,19 +1704,19 @@ HEADER_BLOCK = '''
 <header class="site-header">
   <div class="hdr-left-block">
     <div class="brand-row">
-      <img class="sat-icon" src="data:image/png;base64,''' + SAT_ICON_B64 + '''" alt="XRPRadar Satellite">
+      <img class="sat-icon" src="data:image/png;base64,''' + SAT_ICON_B64 + '''" alt="XRP Complete Satellite">
       <div class="brand-col">
-        <span class="brand-title">XRPRadar <span class="blog-word">Blog</span></span>
+        <span class="brand-title">XRP Complete <span class="blog-word">Blog</span></span>
         <div class="brand-tagline">The <em>NEW</em> XRP Intelligence Standard</div>
       </div>
     </div>
     <div class="cta-row">
-      <a class="visit-btn" href="https://xrpradar.com" target="_blank" rel="noopener">Visit xrpradar</a>
+      <a class="visit-btn" href="https://xrpcomplete.com" target="_blank" rel="noopener">Visit xrpcomplete</a>
       <span class="suffixes">.com, .net, .xyz</span>
     </div>
   </div>
   <div class="hdr-astronaut">
-    <img src="data:image/jpeg;base64,''' + ASTRONAUT_IMAGE_B64 + '''" alt="XRPRadar">
+    <img src="data:image/jpeg;base64,''' + ASTRONAUT_IMAGE_B64 + '''" alt="XRP Complete">
   </div>
   <div class="hdr-right">
     <div class="live-badge"><span class="live-dot"></span>LIVE</div>
@@ -1777,7 +1777,7 @@ def sidebar_context(db):
 INDEX_TEMPLATE = """
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>XRPRadar Blog</title><style>""" + BASE_CSS + """</style></head><body>
+<title>XRP Complete Blog</title><style>""" + BASE_CSS + """</style></head><body>
 <div class="shell">
 """ + HEADER_BLOCK + """
 <div class="layout">
@@ -1807,7 +1807,7 @@ INDEX_TEMPLATE = """
 POST_TEMPLATE = """
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ post['title'] }} \u2014 XRPRadar Blog</title><style>""" + BASE_CSS + """</style></head><body>
+<title>{{ post['title'] }} \u2014 XRP Complete Blog</title><style>""" + BASE_CSS + """</style></head><body>
 <div class="shell">
 """ + HEADER_BLOCK + """
 <div class="layout">
@@ -1832,7 +1832,7 @@ POST_TEMPLATE = """
 LOGIN_TEMPLATE = """
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Admin Login \u2014 XRPRadar Blog</title><style>""" + BASE_CSS + """</style></head><body>
+<title>Admin Login \u2014 XRP Complete Blog</title><style>""" + BASE_CSS + """</style></head><body>
 <div class="shell">
 """ + HEADER_BLOCK + """
 <div style="max-width:400px; margin:40px auto; padding:0 20px;">
@@ -1851,7 +1851,7 @@ LOGIN_TEMPLATE = """
 ADMIN_TEMPLATE = """
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Admin \u2014 XRPRadar Blog</title><style>""" + BASE_CSS + """</style></head><body>
+<title>Admin \u2014 XRP Complete Blog</title><style>""" + BASE_CSS + """</style></head><body>
 <div class="shell">
 """ + HEADER_BLOCK + """
 <div style="max-width:1000px; margin:0 auto; padding:24px 20px 60px;">
@@ -1909,7 +1909,7 @@ ADMIN_TEMPLATE = """
 EDIT_TEMPLATE = """
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Edit Post \u2014 XRPRadar Blog</title><style>""" + BASE_CSS + """</style></head><body>
+<title>Edit Post \u2014 XRP Complete Blog</title><style>""" + BASE_CSS + """</style></head><body>
 <div class="shell">
 """ + HEADER_BLOCK + """
 <div style="max-width:1000px; margin:0 auto; padding:24px 20px 60px;">
@@ -1976,7 +1976,7 @@ def index():
     posts = db.execute("SELECT * FROM posts WHERE published = 1 ORDER BY created_at DESC").fetchall()
     recent_posts, categories = sidebar_context(db)
     return render_template_string(
-        INDEX_TEMPLATE, posts=posts, heading="XRPRadar Blog",
+        INDEX_TEMPLATE, posts=posts, heading="XRP Complete Blog",
         subheading="XRP market insight, product updates, and notes from Red Rio Ventures.",
         recent_posts=recent_posts, categories=categories, **footer_ctx(db, visitor_count)
     )
@@ -2208,7 +2208,7 @@ footer { text-align: center; color: var(--muted); font-size: 12px; padding: 30px
 </div>
 <div class="wrap">
   <div class="lockbar">DO NOT DELETE \u2014 THIS PAGE IS A LOCKED COPYRIGHT ARCHIVE</div>
-  <h1>XRPRadar Blog \u2014 Copyright Archive</h1>
+  <h1>XRP Complete Blog \u2014 Copyright Archive</h1>
   <div class="meta">
     Archive locked: <strong>{{ archive_date }}</strong> &middot;
     Snapshot rendered: <strong>{{ server_time }}</strong><br>
@@ -2224,7 +2224,7 @@ footer { text-align: center; color: var(--muted); font-size: 12px; padding: 30px
   {% else %}
   <p class="meta">No posts recorded at time of this snapshot.</p>
   {% endfor %}
-  <footer>\u00a9\ufe0f Copyright 2026 Red Rio Ventures, LLC. All rights reserved globally. \u2014 Archived record, not for public distribution.</footer>
+  <footer>\u00a9\ufe0f Copyright 2026 XRP Complete / Red Rio Ventures, LLC. All rights reserved globally. \u2014 Archived record, not for public distribution.</footer>
 </div>
 </body></html>
 """
