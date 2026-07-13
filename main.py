@@ -23,7 +23,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 
-APP_VERSION = "v16"
+APP_VERSION = "v17"
 LAST_UPDATED = "July 12, 2026"
 START_TIME = time.time()
 
@@ -1711,7 +1711,7 @@ HEADER_BLOCK = '''
       </div>
     </div>
     <div class="cta-row">
-      <a class="visit-btn" href="https://xrpcomplete.com" target="_blank" rel="noopener">Visit xrpcomplete</a>
+      <a class="visit-btn" href="https://xrpradar.com" target="_blank" rel="noopener">Visit xrpcomplete</a>
       <span class="suffixes">.com, .net, .xyz</span>
     </div>
   </div>
