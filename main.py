@@ -24,8 +24,8 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v20"
-LAST_UPDATED = "July 18, 2026"
+APP_VERSION = "v21"
+LAST_UPDATED = "July 18, 2026 \u2022 1:45 PM CT"
 START_TIME = time.time()
 
 # ----------------------------------------------------------------------
@@ -209,7 +209,7 @@ header.site-header {
 .hdr-astronaut { flex: 1; display: flex; justify-content: center; align-items: center; }
 .hdr-astronaut img { height: 288px; width: auto; opacity: 0.95; display: block; }
 .brand-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-.sat-icon { width: 144px; height: 144px; border-radius: 20px; display: block; }
+.sat-icon { width: 96px; height: 96px; border-radius: 16px; display: block; }
 .brand-col { display: flex; flex-direction: column; }
 .brand-title { color: #ffffff; font-size: 24px; font-weight: bold; font-style: italic; font-family: Calibri, sans-serif; }
 .brand-title .blog-word { color: #ffffff; font-style: italic; }
@@ -217,16 +217,17 @@ header.site-header {
 .brand-tagline em { font-style: italic; }
 .cta-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
 .visit-btn {
-    background: linear-gradient(135deg, #03b1fc, #00e5cc);
-    color: #001a2e;
-    border: none;
-    font-weight: 900;
-    padding: 12px 22px;
-    border-radius: 10px;
+    display: inline-flex;
+    align-items: center;
+    background: transparent;
+    color: #03b1fc;
+    border: 2px solid #03b1fc;
+    font-weight: bold;
+    padding: 3px 12px;
+    border-radius: 8px;
     text-decoration: none;
-    font-size: 16px;
+    font-size: 13px;
     letter-spacing: 0.5px;
-    box-shadow: 0 0 18px rgba(3,177,252,.45);
     font-family: Calibri, sans-serif;
 }
 .suffixes { color: #ffffff; font-size: 15px; }
@@ -1736,8 +1737,7 @@ HEADER_BLOCK = '''
     <div class="live-badge"><span class="live-dot"></span>LIVE</div>
     <div>{{ version }}</div>
     <div>Updated {{ last_updated }}</div>
-    <a class="visit-btn" href="https://xrpcomplete.com" target="_blank" rel="noopener">Visit xrpcomplete</a>
-    <div class="visit-sub">The <em>NEW</em> XRP Intelligence Standard</div>
+    <a class="visit-btn" href="https://xrpcomplete.com" target="_blank" rel="noopener">WEBSITE</a>
   </div>
 </header>
 '''
