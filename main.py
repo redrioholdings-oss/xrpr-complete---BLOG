@@ -22,10 +22,9 @@ UPLOAD_DIR = os.path.join(DATA_DIR, "uploads") if os.path.isdir(DATA_DIR) else "
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
-PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v18"
-LAST_UPDATED = "July 18, 2026"
+APP_VERSION = "v17"
+LAST_UPDATED = "July 12, 2026"
 START_TIME = time.time()
 
 # ----------------------------------------------------------------------
@@ -78,18 +77,6 @@ def init_db():
         CREATE TABLE IF NOT EXISTS site_stats (
             key TEXT PRIMARY KEY,
             value INTEGER NOT NULL
-        )
-        """
-    )
-    conn.execute(
-        """
-        CREATE TABLE IF NOT EXISTS portal_items (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            kind TEXT NOT NULL,
-            title TEXT NOT NULL,
-            filename TEXT,
-            body TEXT,
-            created_at TEXT NOT NULL
         )
         """
     )
@@ -217,16 +204,14 @@ header.site-header {
 .brand-tagline em { font-style: italic; }
 .cta-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
 .visit-btn {
-    background: linear-gradient(135deg, #03b1fc, #00e5cc);
-    color: #001a2e;
-    border: none;
-    font-weight: 900;
-    padding: 12px 22px;
-    border-radius: 10px;
+    background: transparent;
+    color: var(--hdr);
+    border: 2px solid var(--hdr);
+    font-weight: bold;
+    padding: 8px 16px;
+    border-radius: 8px;
     text-decoration: none;
-    font-size: 16px;
-    letter-spacing: 0.5px;
-    box-shadow: 0 0 18px rgba(3,177,252,.45);
+    font-size: 15px;
     font-family: Calibri, sans-serif;
 }
 .suffixes { color: #ffffff; font-size: 15px; }
@@ -1726,7 +1711,8 @@ HEADER_BLOCK = '''
       </div>
     </div>
     <div class="cta-row">
-      <a class="visit-btn" href="https://xrpcomplete.com" target="_blank" rel="noopener">\U0001F6F0\uFE0F XRP COMPLETE \u2014 MAIN SITE</a>
+      <a class="visit-btn" href="https://xrpradar.com" target="_blank" rel="noopener">Visit xrpcomplete</a>
+      <span class="suffixes">.com, .net, .xyz</span>
     </div>
   </div>
   <div class="hdr-astronaut">
@@ -2175,8 +2161,7 @@ def not_found(e):
 # This route is intentionally NOT linked from any nav, sidebar, sitemap,
 # or other page on the site. It exists solely as a timestamped legal
 # record of site content for copyright purposes, matching the frozen
-# archive pattern used on the main site (/copyright7_26, /copyright7_26_b,
-# /copyright7_26_c) under its XRPRadar-era and XRP Complete branding.
+# archive pattern used on XRPRadar (/copyright7_26, /copyright7_26_b).
 # Lock date below is fixed and must never be changed on future edits.
 # DO NOT DELETE THIS ROUTE OR THIS COMMENT BLOCK.
 # ----------------------------------------------------------------------
@@ -2259,158 +2244,6 @@ def _do_not_delete_copyright_archive():
     server_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     return render_template_string(
         ARCHIVE_TEMPLATE, posts=posts, archive_date=ARCHIVE_LOCK_DATE, server_time=server_time
-    )
-
-
-# ----------------------------------------------------------------------
-# AUTHOR PORTAL (V18) — hidden, password-protected upload portal
-# ----------------------------------------------------------------------
-# Not linked from any nav, sidebar, or page. Reuses the admin session.
-# Accepts: PDFs, stories (text), news items, general items, memes (images).
-# Files persist on the /data Railway volume alongside post images.
-# ----------------------------------------------------------------------
-
-PORTAL_TEMPLATE = """
-<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow, noarchive">
-<title>Author Portal \u2014 XRP Complete Blog</title><style>""" + BASE_CSS + """
-.portal-wrap { max-width: 900px; margin: 30px auto; padding: 0 16px; }
-.portal-card { background: var(--card, #0a0a0a); border: 1px solid #1a2030; border-radius: 10px; padding: 18px; margin-bottom: 18px; }
-.portal-card h2 { color: var(--hdr, #03b1fc); margin-top: 0; }
-.portal-form label { display: block; color: #a8bdd0; font-size: 14px; margin: 10px 0 4px; }
-.portal-form input[type=text], .portal-form textarea, .portal-form select {
-  width: 100%; background: #000; color: #e7ecf3; border: 1px solid #1a2030; border-radius: 6px; padding: 8px; font-size: 15px; }
-.portal-form textarea { min-height: 120px; }
-.portal-btn { margin-top: 14px; background: linear-gradient(135deg,#03b1fc,#00e5cc); color: #001a2e; font-weight: 900; border: none; border-radius: 8px; padding: 10px 20px; font-size: 15px; cursor: pointer; }
-.pi-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-bottom: 1px solid #1a2030; padding: 8px 0; font-size: 14px; }
-.pi-kind { color: #00e5cc; font-weight: bold; text-transform: uppercase; font-size: 12px; letter-spacing: 1px; min-width: 60px; }
-.pi-link { color: #75bcff; word-break: break-all; }
-.pi-del { background: transparent; border: 1px solid #ff4060; color: #ff4060; border-radius: 6px; padding: 4px 10px; cursor: pointer; font-size: 12px; }
-</style></head><body>
-<div class="portal-wrap">
-  <div class="portal-card">
-    <h2>\U0001F9EA Author Portal</h2>
-    <p style="color:#a8bdd0;font-size:14px">Hidden upload portal \u2014 PDFs, stories, news, items, and memes.
-    Files persist on the data volume and are served under <code>/uploads/</code>.
-    {% if flash_msg %}<b style="color:#48ff82">{{ flash_msg }}</b>{% endif %}</p>
-    <form class="portal-form" method="POST" action="{{ url_for('portal_upload') }}" enctype="multipart/form-data">
-      <label>Type</label>
-      <select name="kind">
-        <option value="pdf">PDF (digital document)</option>
-        <option value="story">Story (text)</option>
-        <option value="news">News (text)</option>
-        <option value="item">Item (text or file)</option>
-        <option value="meme">Meme (image)</option>
-      </select>
-      <label>Title</label>
-      <input type="text" name="title" required>
-      <label>Text body (for stories / news / items \u2014 optional)</label>
-      <textarea name="body"></textarea>
-      <label>File (PDF or image \u2014 optional)</label>
-      <input type="file" name="file">
-      <button class="portal-btn" type="submit">Upload</button>
-    </form>
-  </div>
-  <div class="portal-card">
-    <h2>Library ({{ items|length }})</h2>
-    {% for it in items %}
-    <div class="pi-row">
-      <span class="pi-kind">{{ it['kind'] }}</span>
-      <span style="flex:1">{{ it['title'] }}
-        {% if it['filename'] %}<br><a class="pi-link" href="/uploads/{{ it['filename'] }}" target="_blank">/uploads/{{ it['filename'] }}</a>{% endif %}
-        {% if it['body'] %}<br><span style="color:#a8bdd0">{{ it['body'][:140] }}{% if it['body']|length > 140 %}\u2026{% endif %}</span>{% endif %}
-      </span>
-      <span style="color:#a8bdd0;font-size:12px">{{ it['created_at'][:10] }}</span>
-      <form method="POST" action="{{ url_for('portal_delete', item_id=it['id']) }}" onsubmit="return confirm('Delete this item?')">
-        <button class="pi-del" type="submit">Delete</button>
-      </form>
-    </div>
-    {% endfor %}
-    {% if not items %}<p style="color:#a8bdd0">Nothing uploaded yet.</p>{% endif %}
-  </div>
-  <p><a style="color:#75bcff" href="{{ url_for('admin') }}">\u2190 Back to Admin</a></p>
-</div>
-</body></html>
-"""
-
-
-def _portal_allowed(filename):
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in PORTAL_ALLOWED_EXT
-
-
-@app.route("/portal")
-@login_required
-def portal():
-    db = get_db()
-    items = db.execute("SELECT * FROM portal_items ORDER BY created_at DESC").fetchall()
-    return render_template_string(PORTAL_TEMPLATE, items=items, flash_msg=request.args.get("msg"))
-
-
-@app.route("/portal/upload", methods=["POST"])
-@login_required
-def portal_upload():
-    db = get_db()
-    kind = (request.form.get("kind") or "item").strip().lower()
-    title = (request.form.get("title") or "Untitled").strip()
-    body = (request.form.get("body") or "").strip()
-    fname = None
-    f = request.files.get("file")
-    if f and f.filename:
-        if not _portal_allowed(f.filename):
-            return redirect(url_for("portal", msg="File type not allowed (images or PDF only)."))
-        fname = f"{uuid.uuid4().hex[:10]}_{secure_filename(f.filename)}"
-        f.save(os.path.join(UPLOAD_DIR, fname))
-    db.execute(
-        "INSERT INTO portal_items (kind, title, filename, body, created_at) VALUES (?, ?, ?, ?, ?)",
-        (kind, title, fname, body, datetime.utcnow().isoformat()),
-    )
-    db.commit()
-    return redirect(url_for("portal", msg="Uploaded."))
-
-
-@app.route("/portal/item/<int:item_id>/delete", methods=["POST"])
-@login_required
-def portal_delete(item_id):
-    db = get_db()
-    row = db.execute("SELECT filename FROM portal_items WHERE id = ?", (item_id,)).fetchone()
-    if row and row["filename"]:
-        try:
-            os.remove(os.path.join(UPLOAD_DIR, row["filename"]))
-        except OSError:
-            pass
-    db.execute("DELETE FROM portal_items WHERE id = ?", (item_id,))
-    db.commit()
-    return redirect(url_for("portal", msg="Deleted."))
-
-
-# ----------------------------------------------------------------------
-# DO NOT DELETE \u2014 COPYRIGHT ARCHIVE ROUTE B (V18)
-# ----------------------------------------------------------------------
-# Second, independent dated snapshot under the XRP Complete Blog brand at
-# xrpcompleteblog.com. The July 12, 2026 archive above is untouched and
-# remains the earliest dated proof; this adds a later, second proof point.
-# Lock date below is fixed and must never be changed on future edits.
-# DO NOT DELETE THIS ROUTE OR THIS COMMENT BLOCK.
-# ----------------------------------------------------------------------
-
-ARCHIVE_LOCK_DATE_B = "July 18, 2026"
-ARCHIVE_ROUTE_PATH_B = "/archivexrpblogcopyright18July2026"
-
-
-@app.route(ARCHIVE_ROUTE_PATH_B)
-def _do_not_delete_copyright_archive_b():
-    """
-    DO NOT DELETE.
-    Hidden, unlinked copyright archive snapshot B (July 18, 2026 —
-    xrpcompleteblog.com era). No nav/sidebar/sitemap reference exists
-    anywhere in this app pointing to this route.
-    """
-    db = get_db()
-    posts = db.execute("SELECT * FROM posts ORDER BY created_at DESC").fetchall()
-    server_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
-    return render_template_string(
-        ARCHIVE_TEMPLATE, posts=posts, archive_date=ARCHIVE_LOCK_DATE_B, server_time=server_time
     )
 
 
