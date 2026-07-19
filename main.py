@@ -24,7 +24,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v26"
+APP_VERSION = "v28"
 LAST_UPDATED_DATE = "July 18, 2026"
 LAST_UPDATED_TIME = "1:45 PM CT"
 START_TIME = time.time()
@@ -1589,7 +1589,7 @@ def sidebar_html():
 
 def sidebar_context(db):
     recent_posts = db.execute(
-        "SELECT * FROM posts WHERE published = 1 ORDER BY created_at DESC LIMIT 5"
+        "SELECT * FROM posts WHERE published = 1 ORDER BY id DESC LIMIT 5"
     ).fetchall()
     categories = db.execute(
         "SELECT category, COUNT(*) as n FROM posts WHERE published = 1 GROUP BY category ORDER BY category"
@@ -1801,7 +1801,7 @@ def footer_ctx(db, visitor_count=None):
 def index():
     db = get_db()
     visitor_count = bump_visitor_count(db)
-    posts = db.execute("SELECT * FROM posts WHERE published = 1 ORDER BY created_at DESC").fetchall()
+    posts = db.execute("SELECT * FROM posts WHERE published = 1 ORDER BY id DESC").fetchall()
     recent_posts, categories = sidebar_context(db)
     return render_template_string(
         INDEX_TEMPLATE, posts=posts, heading="XRP Complete Blog",
@@ -1815,7 +1815,7 @@ def by_category(category):
     db = get_db()
     visitor_count = bump_visitor_count(db)
     posts = db.execute(
-        "SELECT * FROM posts WHERE published = 1 AND category = ? ORDER BY created_at DESC", (category,)
+        "SELECT * FROM posts WHERE published = 1 AND category = ? ORDER BY id DESC", (category,)
     ).fetchall()
     recent_posts, categories = sidebar_context(db)
     return render_template_string(
@@ -1832,7 +1832,7 @@ def search():
     if q:
         like = f"%{q}%"
         posts = db.execute(
-            "SELECT * FROM posts WHERE published = 1 AND (title LIKE ? OR content LIKE ?) ORDER BY created_at DESC",
+            "SELECT * FROM posts WHERE published = 1 AND (title LIKE ? OR content LIKE ?) ORDER BY id DESC",
             (like, like),
         ).fetchall()
     else:
@@ -1890,7 +1890,7 @@ def admin_logout():
 @login_required
 def admin():
     db = get_db()
-    posts = db.execute("SELECT * FROM posts ORDER BY created_at DESC").fetchall()
+    posts = db.execute("SELECT * FROM posts ORDER BY id DESC").fetchall()
     flash_msg = request.args.get("msg")
     return render_template_string(ADMIN_TEMPLATE, posts=posts, flash_msg=flash_msg, **footer_ctx(db))
 
@@ -2069,7 +2069,7 @@ def _do_not_delete_copyright_archive():
     (published and draft) for copyright/legal purposes.
     """
     db = get_db()
-    posts = db.execute("SELECT * FROM posts ORDER BY created_at DESC").fetchall()
+    posts = db.execute("SELECT * FROM posts ORDER BY id DESC").fetchall()
     server_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     return render_template_string(
         ARCHIVE_TEMPLATE, posts=posts, archive_date=ARCHIVE_LOCK_DATE, server_time=server_time
@@ -2157,7 +2157,7 @@ def _portal_allowed(filename):
 @login_required
 def portal():
     db = get_db()
-    items = db.execute("SELECT * FROM portal_items ORDER BY created_at DESC").fetchall()
+    items = db.execute("SELECT * FROM portal_items ORDER BY id DESC").fetchall()
     return render_template_string(PORTAL_TEMPLATE, items=items, flash_msg=request.args.get("msg"))
 
 
@@ -2221,7 +2221,7 @@ def _do_not_delete_copyright_archive_b():
     anywhere in this app pointing to this route.
     """
     db = get_db()
-    posts = db.execute("SELECT * FROM posts ORDER BY created_at DESC").fetchall()
+    posts = db.execute("SELECT * FROM posts ORDER BY id DESC").fetchall()
     server_time = datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC")
     return render_template_string(
         ARCHIVE_TEMPLATE, posts=posts, archive_date=ARCHIVE_LOCK_DATE_B, server_time=server_time
