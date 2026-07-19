@@ -24,7 +24,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v31"
+APP_VERSION = "v32"
 LAST_UPDATED_DATE = "July 18, 2026"
 LAST_UPDATED_TIME = "1:45 PM CT"
 START_TIME = time.time()
@@ -1795,6 +1795,25 @@ EDIT_TEMPLATE = """
 <div style="max-width:1000px; margin:0 auto; padding:24px 20px 60px;">
   <a class="btn secondary small" href="{{ url_for('admin') }}">&larr; Back to admin</a>
   <h1 style="margin-top:20px;">Edit Post</h1>
+
+  <label>Existing Images</label>
+  <div class="hint">The first image in this list is used as the post's thumbnail on the blog. Delete moves the next one up.</div>
+  <div style="display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 16px;">
+    {% for img in images %}
+    <div style="width:110px;">
+      <img src="{{ url_for('uploaded_file', filename=img['filename']) }}" alt=""
+           style="width:110px;height:110px;object-fit:cover;border-radius:6px;border:1px solid var(--line);display:block;">
+      <div style="font-size:11px;color:var(--muted);word-break:break-all;margin:4px 0;">{{ img['filename'] }}</div>
+      <form method="post" action="{{ url_for('admin_delete_image', post_id=post['id'], image_id=img['id']) }}"
+            onsubmit="return confirm('Delete this image?');">
+        <button class="btn secondary small" type="submit" style="width:100%;color:#ff4060;border-color:#ff4060;">Delete</button>
+      </form>
+    </div>
+    {% else %}
+    <span class="hint">None uploaded</span>
+    {% endfor %}
+  </div>
+
   <form method="post" enctype="multipart/form-data">
     <label>Title</label>
     <input type="text" name="title" value="{{ post['title'] }}" required>
@@ -1802,23 +1821,6 @@ EDIT_TEMPLATE = """
     <input type="text" name="category" value="{{ post['category'] }}">
     <label>Excerpt</label>
     <input type="text" name="excerpt" value="{{ post['excerpt'] or '' }}">
-    <label>Existing Images</label>
-    <div class="hint">The first image in this list is used as the post's thumbnail on the blog. Delete moves the next one up.</div>
-    <div style="display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 16px;">
-      {% for img in images %}
-      <div style="width:110px;">
-        <img src="{{ url_for('uploaded_file', filename=img['filename']) }}" alt=""
-             style="width:110px;height:110px;object-fit:cover;border-radius:6px;border:1px solid var(--line);display:block;">
-        <div style="font-size:11px;color:var(--muted);word-break:break-all;margin:4px 0;">{{ img['filename'] }}</div>
-        <form method="post" action="{{ url_for('admin_delete_image', post_id=post['id'], image_id=img['id']) }}"
-              onsubmit="return confirm('Delete this image?');">
-          <button class="btn secondary small" type="submit" style="width:100%;color:#ff4060;border-color:#ff4060;">Delete</button>
-        </form>
-      </div>
-      {% else %}
-      <span class="hint">None uploaded</span>
-      {% endfor %}
-    </div>
     <label>Add More Images (optional)</label>
     <input type="file" name="images" multiple accept="image/png,image/jpeg,image/gif,image/webp">
     <label>Content</label>
