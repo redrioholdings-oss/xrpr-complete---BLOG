@@ -24,7 +24,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v29"
+APP_VERSION = "v30"
 LAST_UPDATED_DATE = "July 18, 2026"
 LAST_UPDATED_TIME = "1:45 PM CT"
 START_TIME = time.time()
@@ -1570,7 +1570,7 @@ HEADER_BLOCK = '''
     <div>Updated</div>
     <div>{{ last_updated_date }}</div>
     <div>{{ last_updated_time }}</div>
-    <a class="visit-btn" href="https://xrpcomplete.com" target="_blank" rel="noopener">WEBSITE</a>
+    <a class="visit-btn" href="https://www.xrpcomplete.com" target="_blank" rel="noopener">WEBSITE</a>
   </div>
 </header>
 '''
