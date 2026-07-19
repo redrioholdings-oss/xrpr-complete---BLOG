@@ -24,7 +24,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v32"
+APP_VERSION = "v33"
 LAST_UPDATED_DATE = "July 18, 2026"
 LAST_UPDATED_TIME = "1:45 PM CT"
 START_TIME = time.time()
@@ -262,7 +262,7 @@ main.content { width: 80%; padding: 24px 32px; }
 .sb-cat-count { color: var(--muted); font-size: 12px; }
 .search-form input { width: 100%; }
 
-h1 { color: var(--hdr); font-size: 30px; margin-bottom: 6px; }
+h1 { color: #ffffff; font-size: 30px; margin-bottom: 6px; }
 h2 { color: var(--text); font-size: 20px; }
 .meta { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
 .excerpt { color: var(--muted); font-size: 16px; }
@@ -1653,7 +1653,7 @@ INDEX_TEMPLATE = """
 """ + sidebar_html() + """
   <main class="content">
     <h1>{{ heading }}</h1>
-    <p class="meta">{{ subheading }}</p>
+    {% if subheading %}<p class="meta">{{ subheading }}</p>{% endif %}
     {% if posts %}
       {% for p in posts %}
       <div class="post-card">
@@ -1874,7 +1874,7 @@ def index():
     recent_posts, categories = sidebar_context(db)
     return render_template_string(
         INDEX_TEMPLATE, posts=posts, heading="XRP Complete Blog",
-        subheading="XRP market insight, product updates, and notes from Red Rio Ventures.",
+        subheading="",
         recent_posts=recent_posts, categories=categories, **footer_ctx(db, visitor_count)
     )
 
