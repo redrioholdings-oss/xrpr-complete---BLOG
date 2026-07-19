@@ -24,7 +24,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v25"
+APP_VERSION = "v26"
 LAST_UPDATED_DATE = "July 18, 2026"
 LAST_UPDATED_TIME = "1:45 PM CT"
 START_TIME = time.time()
@@ -1704,6 +1704,7 @@ ADMIN_TEMPLATE = """
     <div class="row">
       <button class="btn" type="submit" name="publish" value="1">Publish</button>
       <button class="btn secondary" type="submit" name="publish" value="0">Save as Draft</button>
+      <a href="{{ url_for('index') }}" class="btn secondary" style="text-decoration:none;display:inline-flex;align-items:center;">\u2190 Return to Blog</a>
     </div>
   </form>
 
