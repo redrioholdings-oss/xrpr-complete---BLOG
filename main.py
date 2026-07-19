@@ -24,7 +24,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v30"
+APP_VERSION = "v31"
 LAST_UPDATED_DATE = "July 18, 2026"
 LAST_UPDATED_TIME = "1:45 PM CT"
 START_TIME = time.time()
@@ -1803,7 +1803,22 @@ EDIT_TEMPLATE = """
     <label>Excerpt</label>
     <input type="text" name="excerpt" value="{{ post['excerpt'] or '' }}">
     <label>Existing Images</label>
-    <div class="hint">{% for img in images %}{{ img['filename'] }}{% if not loop.last %}, {% endif %}{% else %}None uploaded{% endfor %}</div>
+    <div class="hint">The first image in this list is used as the post's thumbnail on the blog. Delete moves the next one up.</div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 16px;">
+      {% for img in images %}
+      <div style="width:110px;">
+        <img src="{{ url_for('uploaded_file', filename=img['filename']) }}" alt=""
+             style="width:110px;height:110px;object-fit:cover;border-radius:6px;border:1px solid var(--line);display:block;">
+        <div style="font-size:11px;color:var(--muted);word-break:break-all;margin:4px 0;">{{ img['filename'] }}</div>
+        <form method="post" action="{{ url_for('admin_delete_image', post_id=post['id'], image_id=img['id']) }}"
+              onsubmit="return confirm('Delete this image?');">
+          <button class="btn secondary small" type="submit" style="width:100%;color:#ff4060;border-color:#ff4060;">Delete</button>
+        </form>
+      </div>
+      {% else %}
+      <span class="hint">None uploaded</span>
+      {% endfor %}
+    </div>
     <label>Add More Images (optional)</label>
     <input type="file" name="images" multiple accept="image/png,image/jpeg,image/gif,image/webp">
     <label>Content</label>
@@ -2005,6 +2020,23 @@ def admin_edit_post(post_id):
 
     images = db.execute("SELECT * FROM images WHERE post_id = ?", (post_id,)).fetchall()
     return render_template_string(EDIT_TEMPLATE, post=post, images=images, **footer_ctx(db))
+
+
+@app.route("/admin/post/<int:post_id>/image/<int:image_id>/delete", methods=["POST"])
+@login_required
+def admin_delete_image(post_id, image_id):
+    db = get_db()
+    row = db.execute(
+        "SELECT * FROM images WHERE id = ? AND post_id = ?", (image_id, post_id)
+    ).fetchone()
+    if row is not None:
+        try:
+            os.remove(os.path.join(UPLOAD_DIR, row["filename"]))
+        except OSError:
+            pass
+        db.execute("DELETE FROM images WHERE id = ?", (image_id,))
+        db.commit()
+    return redirect(url_for("admin_edit_post", post_id=post_id))
 
 
 @app.route("/admin/post/<int:post_id>/publish", methods=["POST"])
