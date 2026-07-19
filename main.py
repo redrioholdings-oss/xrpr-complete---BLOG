@@ -24,7 +24,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v28"
+APP_VERSION = "v29"
 LAST_UPDATED_DATE = "July 18, 2026"
 LAST_UPDATED_TIME = "1:45 PM CT"
 START_TIME = time.time()
@@ -274,6 +274,28 @@ a.post-link:hover { color: var(--tq); }
     border-radius: 8px;
     padding: 20px;
     margin-bottom: 16px;
+    display: flex;
+    gap: 20px;
+    align-items: flex-start;
+}
+.post-card-body { flex: 1; min-width: 0; }
+.post-thumb {
+    flex-shrink: 0;
+    width: 250px;
+    height: 250px;
+    border-radius: 8px;
+    border: 1px solid var(--line);
+    background: #05070c;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.post-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.post-thumb.empty { color: var(--muted); font-size: 13px; letter-spacing: 0.5px; border-style: dashed; }
+@media (max-width: 700px) {
+    .post-card { flex-direction: column; }
+    .post-thumb { width: 100%; height: 200px; }
 }
 .category-tag { display: inline-block; background: rgba(3,177,252,0.12); color: var(--hdr); font-size: 11px; padding: 2px 8px; border-radius: 10px; margin-bottom: 8px; }
 .post-content { font-size: 16px; line-height: 1.7; white-space: pre-wrap; }
@@ -1597,6 +1619,26 @@ def sidebar_context(db):
     return recent_posts, categories
 
 
+def attach_thumbnails(db, posts):
+    """Convert post rows to dicts and attach each post's first uploaded image
+    (by lowest image id) as 'thumb', or None if the post has no images."""
+    posts = [dict(p) for p in posts]
+    ids = [p["id"] for p in posts]
+    if not ids:
+        return posts
+    placeholders = ",".join("?" for _ in ids)
+    rows = db.execute(
+        f"SELECT post_id, filename FROM images WHERE post_id IN ({placeholders}) ORDER BY id ASC",
+        ids,
+    ).fetchall()
+    first_image = {}
+    for r in rows:
+        first_image.setdefault(r["post_id"], r["filename"])
+    for p in posts:
+        p["thumb"] = first_image.get(p["id"])
+    return posts
+
+
 # ----------------------------------------------------------------------
 # PUBLIC TEMPLATES
 # ----------------------------------------------------------------------
@@ -1615,10 +1657,17 @@ INDEX_TEMPLATE = """
     {% if posts %}
       {% for p in posts %}
       <div class="post-card">
-        <div class="category-tag">{{ p['category'] }}</div>
-        <a class="post-link" href="{{ url_for('show_post', slug=p['slug']) }}"><h2>{{ p['title'] }}</h2></a>
-        <div class="meta">{{ p['created_at'] }}</div>
-        <div class="excerpt">{{ p['excerpt'] }}</div>
+        {% if p['thumb'] %}
+        <div class="post-thumb"><img src="{{ url_for('uploaded_file', filename=p['thumb']) }}" alt=""></div>
+        {% else %}
+        <div class="post-thumb empty">No image</div>
+        {% endif %}
+        <div class="post-card-body">
+          <div class="category-tag">{{ p['category'] }}</div>
+          <a class="post-link" href="{{ url_for('show_post', slug=p['slug']) }}"><h2>{{ p['title'] }}</h2></a>
+          <div class="meta">{{ p['created_at'] }}</div>
+          <div class="excerpt">{{ p['excerpt'] }}</div>
+        </div>
       </div>
       {% endfor %}
     {% else %}
@@ -1684,7 +1733,10 @@ ADMIN_TEMPLATE = """
 <div style="max-width:1000px; margin:0 auto; padding:24px 20px 60px;">
   <div class="row" style="justify-content:space-between;">
     <h1>Admin</h1>
-    <a class="btn secondary" href="{{ url_for('admin_logout') }}">Log out</a>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <span style="color:var(--muted);font-size:14px;">\U0001F441\uFE0F Visitors: <strong style="color:var(--hdr)">{{ visitor_count }}</strong></span>
+      <a class="btn secondary" href="{{ url_for('admin_logout') }}">Log out</a>
+    </div>
   </div>
   {% if flash_msg %}<div class="flash">{{ flash_msg }}</div>{% endif %}
 
@@ -1801,7 +1853,7 @@ def footer_ctx(db, visitor_count=None):
 def index():
     db = get_db()
     visitor_count = bump_visitor_count(db)
-    posts = db.execute("SELECT * FROM posts WHERE published = 1 ORDER BY id DESC").fetchall()
+    posts = attach_thumbnails(db, db.execute("SELECT * FROM posts WHERE published = 1 ORDER BY id DESC").fetchall())
     recent_posts, categories = sidebar_context(db)
     return render_template_string(
         INDEX_TEMPLATE, posts=posts, heading="XRP Complete Blog",
@@ -1814,9 +1866,9 @@ def index():
 def by_category(category):
     db = get_db()
     visitor_count = bump_visitor_count(db)
-    posts = db.execute(
+    posts = attach_thumbnails(db, db.execute(
         "SELECT * FROM posts WHERE published = 1 AND category = ? ORDER BY id DESC", (category,)
-    ).fetchall()
+    ).fetchall())
     recent_posts, categories = sidebar_context(db)
     return render_template_string(
         INDEX_TEMPLATE, posts=posts, heading=f"Category: {category}",
@@ -1831,10 +1883,10 @@ def search():
     db = get_db()
     if q:
         like = f"%{q}%"
-        posts = db.execute(
+        posts = attach_thumbnails(db, db.execute(
             "SELECT * FROM posts WHERE published = 1 AND (title LIKE ? OR content LIKE ?) ORDER BY id DESC",
             (like, like),
-        ).fetchall()
+        ).fetchall())
     else:
         posts = []
     recent_posts, categories = sidebar_context(db)
