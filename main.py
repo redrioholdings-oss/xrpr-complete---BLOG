@@ -24,7 +24,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v33"
+APP_VERSION = "v35"
 LAST_UPDATED_DATE = "July 18, 2026"
 LAST_UPDATED_TIME = "1:45 PM CT"
 START_TIME = time.time()
@@ -150,7 +150,20 @@ def save_uploaded_images(post_id, files):
 
 
 def render_content(content):
-    """Replace {{img:filename}} tokens with actual image tags."""
+    """Replace {{img:filename}} tokens with actual image tags. Strips any
+    <style>, <script>, <html>, <head>, <body> tags (and their content), any
+    inline on*="" event-handler attributes, and any inline style="" attributes
+    so a pasted full HTML document can never override this page's own CSS,
+    inject scripts, or run inline event handlers \u2014 only the safe subset of
+    tags used by our paste-ready format (h2, p, strong, em, hr, img) passes
+    through untouched."""
+    content = re.sub(r"(?is)<(style|script)\b[^>]*>.*?</\1>", "", content)
+    content = re.sub(r"(?i)</?(html|head|body|meta|link|title|iframe|object|embed)\b[^>]*>", "", content)
+    content = re.sub(r'(?i)\son[a-z]+\s*=\s*"[^"]*"', "", content)
+    content = re.sub(r"(?i)\son[a-z]+\s*=\s*'[^']*'", "", content)
+    content = re.sub(r'(?i)\sstyle\s*=\s*"[^"]*"', "", content)
+    content = re.sub(r"(?i)\sstyle\s*=\s*'[^']*'", "", content)
+
     def repl(match):
         fname = match.group(1).strip()
         return f'<img src="/uploads/{fname}" alt="{fname}" class="post-img">'
