@@ -25,7 +25,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v36"
+APP_VERSION = "v37"
 LAST_UPDATED_DATE = "July 18, 2026"
 LAST_UPDATED_TIME = "1:45 PM CT"
 START_TIME = time.time()
@@ -8651,7 +8651,7 @@ def sidebar_html():
     return """
 <aside class="sidebar">
   <div class="sb-block">
-    <a href="https://xrpcomplete.com" target="_blank" rel="noopener"
+    <a href="https://www.xrpcomplete.com" target="_blank" rel="noopener"
        style="display:block;width:100%;aspect-ratio:1/1;border-radius:14px;overflow:hidden;">
       <img src="{{ url_for('sidebar_ad_image') }}" alt="XRP Complete"
            style="width:100%;height:100%;object-fit:cover;display:block;">
