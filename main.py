@@ -25,9 +25,9 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v39"
-LAST_UPDATED_DATE = "July 18, 2026"
-LAST_UPDATED_TIME = "1:45 PM CT"
+APP_VERSION = "v40"
+LAST_UPDATED_DATE = "July 27, 2026"
+LAST_UPDATED_TIME = "10:15 PM CT"
 START_TIME = time.time()
 
 # ----------------------------------------------------------------------
@@ -197,19 +197,23 @@ BASE_CSS = """
     --tq: #00e5cc;
     --navy: #1A2942;
     --bg: #000000;
-    --card: #0a0d13;
-    --card-hi: #0e1420;
-    --line: #182234;
-    --line-soft: #121a28;
-    --text: #e7ecf3;
+    --panel: #070a10;
+    --card: #0a0e16;
+    --card-hi: #0f1523;
+    --line: #1a2438;
+    --line-soft: #111827;
+    --text: #e9eef6;
     --muted: #8b93a7;
     --mn: 'SF Mono', 'Cascadia Code', Consolas, Menlo, monospace;
 }
 * { box-sizing: border-box; }
+html { scroll-behavior: smooth; }
 body {
     margin: 0;
     font-family: Calibri, 'Segoe UI', sans-serif;
-    background: var(--bg);
+    background:
+        radial-gradient(1200px 500px at 85% -120px, rgba(26,41,66,0.35) 0%, transparent 70%),
+        var(--bg);
     color: var(--text);
 }
 .shell { max-width: 1400px; margin: 0 auto; }
@@ -218,34 +222,83 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     outline: 2px solid var(--hdr); outline-offset: 2px;
 }
 
-/* HEADER */
+/* ── INTELLIGENCE STRIP ─────────────────────────────────────── */
+.intel-strip {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 7px 24px;
+    font-family: var(--mn); font-size: 10.5px; letter-spacing: 2px; text-transform: uppercase;
+    color: var(--muted);
+    border-bottom: 1px solid var(--line-soft);
+    background: linear-gradient(90deg, rgba(3,177,252,0.06), transparent 40%, transparent 60%, rgba(0,229,204,0.05));
+}
+.intel-strip .is-brand { color: var(--hdr); }
+.intel-strip .is-dot { color: var(--tq); }
+@media (max-width: 700px) { .intel-strip { display: none; } }
+
+/* ── MASTHEAD ───────────────────────────────────────────────── */
 header.site-header {
+    position: relative;
     display: flex;
-    align-items: center;
+    align-items: stretch;
     justify-content: space-between;
-    background: radial-gradient(120% 160% at 50% -30%, rgba(26,41,66,0.55) 0%, #000 62%);
+    gap: 24px;
+    min-height: 300px;
+    padding: 28px 32px;
+    overflow: hidden;
+    background: #000;
     border-bottom: 1px solid transparent;
     border-image: linear-gradient(90deg, var(--hdr), var(--tq) 55%, transparent) 1;
-    padding: 16px 24px;
-    gap: 20px;
 }
-.hdr-left-block { display: flex; flex-direction: column; gap: 10px; flex-shrink: 0; }
-.hdr-astronaut { flex: 1; min-width: 0; display: flex; justify-content: center; align-items: center; overflow: hidden; }
-.hdr-astronaut img {
-    max-height: 288px; max-width: 100%; height: auto; width: auto; object-fit: contain; display: block;
-    opacity: 0.95;
-    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 7%, #000 93%, transparent 100%);
-    mask-image: linear-gradient(90deg, transparent 0%, #000 7%, #000 93%, transparent 100%);
+.mast-bg {
+    position: absolute; inset: 0; z-index: 0; pointer-events: none;
 }
-.brand-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
-.sat-icon { width: auto; height: 96px; display: flex; align-items: center; justify-content: center; background: #000000; }
-.sat-icon img { height: 96px; width: auto; display: block; background: #000000; filter: drop-shadow(0 0 14px rgba(3,177,252,0.35)); }
+.mast-bg img {
+    width: 100%; height: 100%; object-fit: cover; object-position: 72% 30%;
+    display: block; opacity: 0.85;
+}
+.mast-scrim {
+    position: absolute; inset: 0; z-index: 1; pointer-events: none;
+    background:
+        linear-gradient(90deg, rgba(0,0,0,0.96) 0%, rgba(0,0,0,0.88) 30%, rgba(0,0,0,0.35) 58%, rgba(0,0,0,0.55) 100%),
+        linear-gradient(180deg, rgba(0,0,0,0.25) 0%, transparent 30%, rgba(0,0,0,0.65) 100%);
+}
+.hdr-left-block { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; gap: 12px; flex-shrink: 0; max-width: 560px; }
+.brand-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.sat-icon { width: auto; height: 104px; display: flex; align-items: center; justify-content: center; }
+.sat-icon img { height: 104px; width: auto; display: block; background: #000000; border-radius: 10px; filter: drop-shadow(0 0 18px rgba(3,177,252,0.45)); }
 .brand-col { display: flex; flex-direction: column; }
-.brand-title { color: #ffffff; font-size: 24px; font-weight: bold; font-style: italic; font-family: Calibri, sans-serif; letter-spacing: 0.2px; }
+.brand-title { color: #ffffff; font-size: 32px; font-weight: bold; font-style: italic; font-family: Calibri, sans-serif; letter-spacing: 0.2px; text-shadow: 0 2px 18px rgba(0,0,0,0.9); }
 .brand-title .blog-word { color: #ffffff; font-style: italic; }
-.brand-tagline { color: var(--hdr); font-size: 16px; font-family: Calibri, sans-serif; margin-top: 4px; white-space: nowrap; }
+.brand-tagline { color: var(--hdr); font-size: 17px; font-family: Calibri, sans-serif; margin-top: 5px; white-space: nowrap; text-shadow: 0 1px 12px rgba(0,0,0,0.9); }
 .brand-tagline em { font-style: italic; }
 .cta-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+.suffixes { color: #ffffff; font-size: 15px; }
+.hdr-astronaut { display: none; }
+
+/* status console */
+.hdr-right {
+    position: relative; z-index: 2;
+    align-self: center;
+    display: flex; flex-direction: column; gap: 0;
+    min-width: 210px;
+    background: rgba(4,7,12,0.82);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px 16px;
+    font-family: var(--mn); font-size: 11.5px; color: var(--muted);
+    box-shadow: 0 12px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
+    backdrop-filter: blur(4px);
+    white-space: nowrap;
+}
+.console-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 14px;
+    padding-bottom: 10px; margin-bottom: 10px;
+    border-bottom: 1px solid var(--line-soft);
+}
+.console-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 3.5px 0; letter-spacing: 0.5px; }
+.console-row .ck { color: var(--muted); text-transform: uppercase; font-size: 10px; letter-spacing: 1.6px; }
+.console-row .cv { color: var(--text); }
+.hdr-right .visit-btn { margin-top: 12px; justify-content: center; }
 .visit-btn {
     display: inline-flex;
     align-items: center;
@@ -253,21 +306,18 @@ header.site-header {
     color: #008CFF;
     border: 2px solid #008CFF;
     font-weight: bold;
-    padding: 3px 12px;
+    padding: 5px 14px;
     border-radius: 8px;
     text-decoration: none;
     font-size: 13px;
-    letter-spacing: 0.5px;
+    letter-spacing: 1px;
     font-family: Calibri, sans-serif;
     transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
-.visit-btn:hover { background: #008CFF; color: #04101c; box-shadow: 0 0 18px rgba(0,140,255,0.45); }
-.suffixes { color: #ffffff; font-size: 15px; }
-.hdr-right { text-align: left; font-size: 12px; color: var(--muted); line-height: 1.6; white-space: nowrap; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; flex-shrink: 0; font-family: var(--mn); }
-.hdr-right .visit-btn { margin-top: 8px; display: inline-block; font-family: Calibri, sans-serif; }
+.visit-btn:hover { background: #008CFF; color: #04101c; box-shadow: 0 0 22px rgba(0,140,255,0.55); }
 .visit-sub { color: var(--hdr); font-size: 12px; font-family: Calibri, sans-serif; }
 .visit-sub em { font-style: italic; }
-.live-badge { display: inline-flex; align-items: center; gap: 6px; color: #6bb072; font-weight: bold; font-size: 13px; border: 2px solid #6bb072; border-radius: 8px; padding: 3px 10px; font-family: var(--mn); letter-spacing: 1px; }
+.live-badge { display: inline-flex; align-items: center; gap: 7px; color: #6bb072; font-weight: bold; font-size: 12px; border: 1.5px solid #6bb072; border-radius: 8px; padding: 3px 10px; font-family: var(--mn); letter-spacing: 2px; }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tq); box-shadow: 0 0 0 0 rgba(0,229,204,0.6); animation: pulse 1.6s infinite; }
 @keyframes pulse {
   0% { box-shadow: 0 0 0 0 rgba(0,229,204,0.6); }
@@ -275,95 +325,169 @@ header.site-header {
   100% { box-shadow: 0 0 0 0 rgba(0,229,204,0); }
 }
 
-/* LAYOUT: sidebar 20% / main 80% */
+/* ── LAYOUT ─────────────────────────────────────────────────── */
 .layout { display: flex; min-height: 70vh; }
 aside.sidebar {
-    width: 20%;
-    min-width: 220px;
+    width: 21%;
+    min-width: 240px;
     border-right: 1px solid var(--line-soft);
-    padding: 24px 18px;
-    background: linear-gradient(180deg, rgba(26,41,66,0.14) 0%, transparent 220px);
+    padding: 28px 20px;
+    background: linear-gradient(180deg, rgba(26,41,66,0.12) 0%, transparent 260px);
 }
-main.content { width: 80%; padding: 24px 32px; }
-.sb-block { margin-bottom: 30px; }
+main.content { width: 79%; padding: 30px 36px 44px; }
+
+.sb-panel {
+    background: var(--panel);
+    border: 1px solid var(--line-soft);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 20px;
+}
+.sb-panel.sb-net { padding: 0; overflow: hidden; border-color: var(--line); }
+.sb-block { margin-bottom: 0; }
 .sb-title {
-    color: var(--hdr); font-size: 12px; text-transform: uppercase; letter-spacing: 1.5px;
-    margin-bottom: 12px; font-family: var(--mn); padding-bottom: 7px; position: relative;
+    color: var(--hdr); font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 12px; font-family: var(--mn); padding-bottom: 8px; position: relative;
 }
 .sb-title::after {
     content: ""; position: absolute; left: 0; bottom: 0; width: 34px; height: 2px;
     background: linear-gradient(90deg, var(--hdr), var(--tq)); border-radius: 2px;
 }
 .sb-list { list-style: none; padding: 0; margin: 0; }
-.sb-list li { margin: 0; padding: 7px 0; border-bottom: 1px solid var(--line-soft); }
-.sb-list li:last-child { border-bottom: none; }
-.sb-list a { color: var(--text); text-decoration: none; font-size: 14px; display: block; padding-left: 0; border-left: 2px solid transparent; transition: color 0.15s ease, padding-left 0.15s ease, border-color 0.15s ease; }
-.sb-list a:hover { color: var(--tq); padding-left: 8px; border-left-color: var(--tq); }
-.sb-cat-count { color: var(--muted); font-size: 12px; font-family: var(--mn); }
-.search-form input { width: 100%; margin-bottom: 0; }
+.sb-list li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line-soft); display: flex; align-items: baseline; gap: 10px; }
+.sb-list li:last-child { border-bottom: none; padding-bottom: 0; }
+.sb-list li:first-child { padding-top: 0; }
+.sb-idx { font-family: var(--mn); font-size: 10.5px; color: var(--hdr); opacity: 0.9; flex-shrink: 0; letter-spacing: 1px; }
+.sb-list a { color: var(--text); text-decoration: none; font-size: 14px; line-height: 1.4; display: block; flex: 1; transition: color 0.15s ease; }
+.sb-list a:hover { color: var(--tq); }
+.sb-cat-count { color: var(--muted); font-size: 11.5px; font-family: var(--mn); margin-left: auto; flex-shrink: 0; }
+.search-form input { width: 100%; margin-bottom: 0; font-family: var(--mn); font-size: 13px; }
 
-h1 { color: #ffffff; font-size: 30px; margin: 0 0 6px; letter-spacing: 0.2px; position: relative; padding-bottom: 12px; }
-main.content > h1::after, main.content h1.page-title::after {
-    content: ""; position: absolute; left: 0; bottom: 0; width: 64px; height: 3px;
+/* ── HEADINGS / META ────────────────────────────────────────── */
+.page-eyebrow {
+    font-family: var(--mn); font-size: 11px; letter-spacing: 3px; text-transform: uppercase;
+    color: var(--tq); margin-bottom: 10px;
+}
+h1 { color: #ffffff; font-size: 32px; margin: 0 0 8px; letter-spacing: 0.2px; position: relative; padding-bottom: 14px; line-height: 1.15; }
+main.content > h1::after, h1.page-title::after, .article-head h1::after {
+    content: ""; position: absolute; left: 0; bottom: 0; width: 72px; height: 3px;
     background: linear-gradient(90deg, var(--hdr), var(--tq)); border-radius: 2px;
 }
 h2 { color: var(--text); font-size: 22px; margin: 4px 0 8px; line-height: 1.25; }
-.meta { color: var(--muted); font-size: 13px; margin-bottom: 20px; font-family: var(--mn); letter-spacing: 0.4px; }
+.meta { color: var(--muted); font-size: 12.5px; margin-bottom: 20px; font-family: var(--mn); letter-spacing: 0.6px; }
 .excerpt { color: var(--muted); font-size: 15.5px; line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 a.post-link { color: var(--text); text-decoration: none; }
-a.post-link:hover h2 { color: var(--tq); }
+a.post-link:hover h2, a.post-link:hover .feat-title { color: var(--tq); }
+
+/* ── FEATURED BRIEFING ──────────────────────────────────────── */
+.feat-card {
+    position: relative;
+    display: flex;
+    background: linear-gradient(135deg, var(--card-hi) 0%, var(--card) 55%, #070b12 100%);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    overflow: hidden;
+    margin-bottom: 30px;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+.feat-card::before {
+    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; z-index: 2;
+    background: linear-gradient(180deg, var(--hdr), var(--tq));
+}
+.feat-card:hover {
+    transform: translateY(-2px);
+    border-color: rgba(3,177,252,0.5);
+    box-shadow: 0 18px 50px rgba(0,0,0,0.6), 0 0 0 1px rgba(3,177,252,0.15);
+}
+.feat-media { flex: 0 0 44%; min-height: 320px; background: #05070c; position: relative; overflow: hidden; }
+.feat-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
+.feat-card:hover .feat-media img { transform: scale(1.045); }
+.feat-media.empty { display: flex; align-items: center; justify-content: center; color: var(--muted); font-family: var(--mn); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; border-right: 1px dashed var(--line); }
+.feat-body { flex: 1; padding: 30px 34px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.feat-eyebrow {
+    display: inline-flex; align-items: center; gap: 9px;
+    font-family: var(--mn); font-size: 10.5px; letter-spacing: 3px; text-transform: uppercase; color: var(--tq);
+    margin-bottom: 14px;
+}
+.feat-eyebrow::before { content: ""; width: 22px; height: 2px; background: linear-gradient(90deg, var(--hdr), var(--tq)); border-radius: 2px; }
+.feat-title { color: #fff; font-size: 30px; font-weight: bold; line-height: 1.18; margin: 0 0 12px; }
+.feat-meta { color: var(--muted); font-family: var(--mn); font-size: 12px; letter-spacing: 0.8px; margin-bottom: 14px; }
+.feat-excerpt { color: var(--muted); font-size: 16px; line-height: 1.7; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 18px; }
+.feat-read { font-family: var(--mn); font-size: 12px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--hdr); }
+.feat-card:hover .feat-read { color: var(--tq); }
+@media (max-width: 900px) {
+    .feat-card { flex-direction: column; }
+    .feat-media { flex-basis: auto; min-height: 220px; }
+    .feat-body { padding: 22px; }
+    .feat-title { font-size: 24px; }
+}
+
+/* ── BRIEFING GRID ──────────────────────────────────────────── */
+.brief-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 20px;
+}
 .post-card {
     position: relative;
+    display: flex;
+    flex-direction: column;
     background: linear-gradient(180deg, var(--card-hi) 0%, var(--card) 100%);
     border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 20px 20px 20px 24px;
-    margin-bottom: 18px;
-    display: flex;
-    gap: 22px;
-    align-items: flex-start;
+    border-radius: 12px;
     overflow: hidden;
     transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+    margin-bottom: 0;
+    padding: 0;
+    gap: 0;
 }
 .post-card::before {
-    content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
-    background: linear-gradient(180deg, var(--hdr), var(--tq));
-    opacity: 0.85;
+    content: ""; position: absolute; left: 0; top: 0; right: 0; height: 3px; z-index: 2;
+    background: linear-gradient(90deg, var(--hdr), var(--tq));
+    opacity: 0.9;
 }
 .post-card:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     border-color: rgba(3,177,252,0.45);
-    box-shadow: 0 10px 32px rgba(0,0,0,0.55), 0 0 0 1px rgba(3,177,252,0.12);
+    box-shadow: 0 14px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(3,177,252,0.12);
 }
-.post-card-body { flex: 1; min-width: 0; }
 .post-thumb {
-    flex-shrink: 0;
-    width: 220px;
-    height: 220px;
-    border-radius: 8px;
-    border: 1px solid var(--line);
+    width: 100%;
+    height: 200px;
+    border: none;
+    border-bottom: 1px solid var(--line-soft);
+    border-radius: 0;
     background: #05070c;
     overflow: hidden;
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
 }
-.post-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.35s ease; }
-.post-card:hover .post-thumb img { transform: scale(1.04); }
-.post-thumb.empty { color: var(--muted); font-size: 12px; letter-spacing: 1px; border-style: dashed; font-family: var(--mn); text-transform: uppercase; }
-@media (max-width: 700px) {
-    .post-card { flex-direction: column; }
-    .post-thumb { width: 100%; height: 200px; }
-}
+.post-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s ease; }
+.post-card:hover .post-thumb img { transform: scale(1.05); }
+.post-thumb.empty { color: var(--muted); font-size: 11px; letter-spacing: 2px; border-bottom-style: dashed; font-family: var(--mn); text-transform: uppercase; }
+.post-card-body { flex: 1; min-width: 0; padding: 18px 20px 20px; display: flex; flex-direction: column; }
+.post-card-body .excerpt { margin-top: auto; }
 .category-tag {
     display: inline-block; background: rgba(3,177,252,0.10); color: var(--hdr);
-    font-size: 10.5px; padding: 3px 10px; border-radius: 999px; margin-bottom: 10px;
-    font-family: var(--mn); text-transform: uppercase; letter-spacing: 1.2px;
+    font-size: 10px; padding: 3px 10px; border-radius: 999px; margin-bottom: 10px;
+    font-family: var(--mn); text-transform: uppercase; letter-spacing: 1.6px;
     border: 1px solid rgba(3,177,252,0.35);
+    align-self: flex-start;
 }
-.post-content { font-size: 16.5px; line-height: 1.8; white-space: pre-wrap; max-width: 900px; }
-.post-img { max-width: 100%; border-radius: 8px; margin: 18px 0; display: block; border: 1px solid var(--line); box-shadow: 0 8px 28px rgba(0,0,0,0.5); }
+.post-card h2 { font-size: 19px; margin: 0 0 8px; }
+.post-card .meta { margin-bottom: 12px; font-size: 11.5px; }
 
+/* ── ARTICLE ────────────────────────────────────────────────── */
+.article-head { margin-bottom: 26px; }
+.article-head .category-tag { margin-top: 16px; }
+.article-head h1 { font-size: 36px; max-width: 920px; }
+.article-rule { height: 1px; background: linear-gradient(90deg, var(--line), transparent); margin: 22px 0 26px; max-width: 920px; }
+.post-content { font-size: 17px; line-height: 1.85; white-space: pre-wrap; max-width: 920px; }
+.post-img { max-width: 100%; border-radius: 10px; margin: 20px 0; display: block; border: 1px solid var(--line); box-shadow: 0 10px 34px rgba(0,0,0,0.55); }
+
+/* ── CONTROLS / FORMS / TABLES (admin + portal + shared) ────── */
 .btn {
     display: inline-block;
     background: var(--hdr);
@@ -376,7 +500,7 @@ a.post-link:hover h2 { color: var(--tq); }
     cursor: pointer;
     font-family: Calibri, sans-serif;
     font-size: 14px;
-    transition: box-shadow 0.15s ease, transform 0.15s ease;
+    transition: box-shadow 0.15s ease;
 }
 .btn:hover { box-shadow: 0 0 16px rgba(3,177,252,0.4); }
 .btn.secondary { background: transparent; color: var(--tq); border: 1px solid var(--tq); }
@@ -385,45 +509,60 @@ a.post-link:hover h2 { color: var(--tq); }
 .btn.small { padding: 4px 10px; font-size: 12px; }
 input, textarea, select {
     width: 100%;
-    background: #0a0d13;
+    background: #0a0e16;
     border: 1px solid #223049;
     color: var(--text);
-    padding: 9px;
+    padding: 9px 11px;
     border-radius: 6px;
     font-family: Calibri, sans-serif;
     font-size: 14px;
     margin-bottom: 12px;
     transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
-input:focus, textarea:focus, select:focus { border-color: var(--hdr); box-shadow: 0 0 0 3px rgba(3,177,252,0.15); outline: none; }
+input:focus, textarea:focus, select:focus { border-color: var(--hdr); box-shadow: 0 0 0 3px rgba(3,177,252,0.14); outline: none; }
 textarea { min-height: 240px; resize: vertical; }
 label { color: var(--muted); font-size: 13px; display: block; margin-bottom: 4px; }
 .row { display: flex; gap: 10px; align-items: center; margin-top: 6px; }
 table { width: 100%; border-collapse: collapse; margin-top: 16px; }
 th, td { text-align: left; padding: 9px; border-bottom: 1px solid var(--line); font-size: 14px; }
-th { color: var(--hdr); font-family: var(--mn); font-size: 12px; text-transform: uppercase; letter-spacing: 1px; }
+th { color: var(--hdr); font-family: var(--mn); font-size: 11px; text-transform: uppercase; letter-spacing: 1.4px; }
 .badge { padding: 2px 8px; border-radius: 10px; font-size: 11px; font-family: var(--mn); }
 .badge.pub { background: rgba(0,229,204,0.15); color: var(--tq); }
 .badge.draft { background: rgba(139,147,167,0.15); color: var(--muted); }
 .flash { background: rgba(3,177,252,0.12); color: var(--hdr); padding: 9px 14px; border-radius: 6px; margin-bottom: 14px; font-size: 13px; border: 1px solid rgba(3,177,252,0.3); }
 .hint { color: var(--muted); font-size: 12px; margin-top: -6px; margin-bottom: 12px; }
 
-/* FOOTER */
+/* ── FOOTER ─────────────────────────────────────────────────── */
 footer.site-footer {
     display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-top: 1px solid var(--line-soft);
-    padding: 14px 24px;
+    flex-direction: column;
+    gap: 0;
+    border-top: 1px solid transparent;
+    border-image: linear-gradient(90deg, var(--hdr), var(--tq) 55%, transparent) 1;
+    padding: 0;
     color: var(--muted);
     font-size: 12px;
-    font-family: var(--mn);
 }
+.foot-deck {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 16px 28px;
+}
+.foot-deck.legal {
+    border-top: 1px solid var(--line-soft);
+    font-family: var(--mn); font-size: 11px; letter-spacing: 0.4px;
+    background: var(--panel);
+}
+.foot-brand { color: var(--text); font-weight: bold; font-style: italic; font-size: 14px; }
+.foot-tag { color: var(--hdr); font-size: 12.5px; }
+.foot-links { font-family: var(--mn); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; }
+.foot-links a { color: var(--hdr); text-decoration: none; }
+.foot-links a:hover { color: var(--tq); }
+@media (max-width: 700px) { .foot-deck { flex-direction: column; align-items: flex-start; gap: 8px; } }
 #debug-panel {
     display: none;
     background: var(--card);
     border: 1px solid var(--line);
-    border-radius: 6px;
+    border-radius: 8px;
     padding: 14px 18px;
     margin: 0 24px 14px;
     font-size: 12px;
@@ -435,10 +574,13 @@ footer.site-footer {
 @media (max-width: 900px) {
     .layout { flex-direction: column; }
     aside.sidebar, main.content { width: 100%; }
-    header.site-header { flex-wrap: wrap; }
+    header.site-header { flex-wrap: wrap; min-height: 0; }
+    .hdr-right { align-self: flex-start; }
+    .brand-title { font-size: 26px; }
 }
 @media (prefers-reduced-motion: reduce) {
     * { animation: none !important; transition: none !important; }
+    html { scroll-behavior: auto; }
 }
 """
 
@@ -8881,16 +9023,29 @@ FOOTER_BLOCK = """
   <div>Server Time (UTC): {{ server_time }}</div>
 </div>
 <footer class="site-footer">
-  <span>\u00a9\ufe0f Copyright 2026 XRP Complete / Red Rio Ventures, LLC. All rights reserved globally. &middot; Visitors: {{ visitor_count }}</span>
-  <span class="row">
-    <button class="btn secondary small" onclick="document.getElementById(\'debug-panel\').style.display = document.getElementById(\'debug-panel\').style.display === \'block\' ? \'none\' : \'block\';">Debug</button>
-    <span>{{ version }} &middot; Last update: {{ last_updated_date }} \u2022 {{ last_updated_time }}</span>
-  </span>
+  <div class="foot-deck">
+    <span><span class="foot-brand">XRP Complete Blog</span> &nbsp;<span class="foot-tag">The <em>NEW</em> XRP Intelligence Standard BLOG</span></span>
+    <span class="foot-links"><a href="https://www.xrpcomplete.com" target="_blank" rel="noopener">XRPCOMPLETE.COM</a> &bull; Not Financial Advice</span>
+  </div>
+  <div class="foot-deck legal">
+    <span>\u00a9\ufe0f Copyright 2026 XRP Complete / Red Rio Ventures, LLC. All rights reserved globally. &middot; Visitors: {{ visitor_count }}</span>
+    <span class="row">
+      <button class="btn secondary small" onclick="document.getElementById(\'debug-panel\').style.display = document.getElementById(\'debug-panel\').style.display === \'block\' ? \'none\' : \'block\';">Debug</button>
+      <span>{{ version }} &middot; Last update: {{ last_updated_date }} \u2022 {{ last_updated_time }}</span>
+    </span>
+  </div>
 </footer>
 """
 
 HEADER_BLOCK = '''
+<div class="intel-strip">
+  <span class="is-brand">XRP Complete Intelligence Network</span>
+  <span>XRPCOMPLETE.COM <span class="is-dot">&bull;</span> XRPCOMPLETEBLOG.COM</span>
+  <span>Not Financial Advice</span>
+</div>
 <header class="site-header">
+  <div class="mast-bg"><img src="data:image/jpeg;base64,''' + ASTRONAUT_IMAGE_B64 + '''" alt=""></div>
+  <div class="mast-scrim"></div>
   <div class="hdr-left-block">
     <div class="brand-row">
       <div class="sat-icon"><img src="/static/helix.jpg?v={{ version }}" alt="XRP Complete"></div>
@@ -8900,15 +9055,13 @@ HEADER_BLOCK = '''
       </div>
     </div>
   </div>
-  <div class="hdr-astronaut">
-    <img src="data:image/jpeg;base64,''' + ASTRONAUT_IMAGE_B64 + '''" alt="XRP Complete">
-  </div>
   <div class="hdr-right">
-    <div class="live-badge"><span class="live-dot"></span>LIVE</div>
-    <div>{{ version }}</div>
-    <div>Updated</div>
-    <div>{{ last_updated_date }}</div>
-    <div>{{ last_updated_time }}</div>
+    <div class="console-head">
+      <div class="live-badge"><span class="live-dot"></span>LIVE</div>
+    </div>
+    <div class="console-row"><span class="ck">Build</span><span class="cv">{{ version }}</span></div>
+    <div class="console-row"><span class="ck">Updated</span><span class="cv">{{ last_updated_date }}</span></div>
+    <div class="console-row"><span class="ck">&nbsp;</span><span class="cv">{{ last_updated_time }}</span></div>
     <a class="visit-btn" href="https://www.xrpcomplete.com" target="_blank" rel="noopener">WEBSITE</a>
   </div>
 </header>
@@ -8918,38 +9071,44 @@ HEADER_BLOCK = '''
 def sidebar_html():
     return """
 <aside class="sidebar">
-  <div class="sb-block">
+  <div class="sb-panel sb-net">
     <a href="https://www.xrpcomplete.com" target="_blank" rel="noopener"
-       style="display:block;width:100%;aspect-ratio:1/1;border-radius:14px;overflow:hidden;">
+       style="display:block;width:100%;aspect-ratio:1/1;overflow:hidden;">
       <img src="{{ url_for('sidebar_ad_image') }}" alt="XRP Complete"
            style="width:100%;height:100%;object-fit:cover;display:block;">
     </a>
   </div>
-  <div class="sb-block">
-    <div class="sb-title">Search</div>
-    <form class="search-form" method="get" action="{{ url_for('search') }}">
-      <input type="text" name="q" placeholder="Search posts..." value="{{ query|default('') }}">
-    </form>
+  <div class="sb-panel">
+    <div class="sb-block">
+      <div class="sb-title">Search</div>
+      <form class="search-form" method="get" action="{{ url_for('search') }}">
+        <input type="text" name="q" placeholder="Search briefings..." value="{{ query|default('') }}">
+      </form>
+    </div>
   </div>
-  <div class="sb-block">
-    <div class="sb-title">Recent Posts</div>
-    <ul class="sb-list">
-      {% for rp in recent_posts %}
-      <li><a href="{{ url_for('show_post', slug=rp['slug']) }}">{{ rp['title'] }}</a></li>
-      {% else %}
-      <li class="sb-cat-count">No posts yet.</li>
-      {% endfor %}
-    </ul>
+  <div class="sb-panel">
+    <div class="sb-block">
+      <div class="sb-title">Recent Posts</div>
+      <ul class="sb-list">
+        {% for rp in recent_posts %}
+        <li><span class="sb-idx">{{ "%02d"|format(loop.index) }}</span><a href="{{ url_for('show_post', slug=rp['slug']) }}">{{ rp['title'] }}</a></li>
+        {% else %}
+        <li class="sb-cat-count">No posts yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
   </div>
-  <div class="sb-block">
-    <div class="sb-title">Categories</div>
-    <ul class="sb-list">
-      {% for c in categories %}
-      <li><a href="{{ url_for('by_category', category=c['category']) }}">{{ c['category'] }}</a> <span class="sb-cat-count">({{ c['n'] }})</span></li>
-      {% else %}
-      <li class="sb-cat-count">No categories yet.</li>
-      {% endfor %}
-    </ul>
+  <div class="sb-panel">
+    <div class="sb-block">
+      <div class="sb-title">Categories</div>
+      <ul class="sb-list">
+        {% for c in categories %}
+        <li><a href="{{ url_for('by_category', category=c['category']) }}">{{ c['category'] }}</a> <span class="sb-cat-count">{{ c['n'] }}</span></li>
+        {% else %}
+        <li class="sb-cat-count">No categories yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
   </div>
 </aside>
 """
@@ -8998,24 +9157,47 @@ INDEX_TEMPLATE = """
 <div class="layout">
 """ + sidebar_html() + """
   <main class="content">
+    <div class="page-eyebrow">Intelligence Briefings</div>
     <h1>{{ heading }}</h1>
     {% if subheading %}<p class="meta">{{ subheading }}</p>{% endif %}
     {% if posts %}
-      {% for p in posts %}
-      <div class="post-card">
-        {% if p['thumb'] %}
-        <div class="post-thumb"><img src="{{ url_for('uploaded_file', filename=p['thumb']) }}" alt=""></div>
-        {% else %}
-        <div class="post-thumb empty">No image</div>
-        {% endif %}
-        <div class="post-card-body">
-          <div class="category-tag">{{ p['category'] }}</div>
-          <a class="post-link" href="{{ url_for('show_post', slug=p['slug']) }}"><h2>{{ p['title'] }}</h2></a>
-          <div class="meta">{{ p['created_at'] }}</div>
-          <div class="excerpt">{{ p['excerpt'] }}</div>
+      {% set featured = posts[0] %}
+      <a class="post-link" href="{{ url_for('show_post', slug=featured['slug']) }}">
+        <div class="feat-card">
+          {% if featured['thumb'] %}
+          <div class="feat-media"><img src="{{ url_for('uploaded_file', filename=featured['thumb']) }}" alt=""></div>
+          {% else %}
+          <div class="feat-media empty">No image</div>
+          {% endif %}
+          <div class="feat-body">
+            <div class="feat-eyebrow">Latest Briefing</div>
+            <div class="category-tag">{{ featured['category'] }}</div>
+            <div class="feat-title">{{ featured['title'] }}</div>
+            <div class="feat-meta">{{ featured['created_at'] }}</div>
+            <div class="feat-excerpt">{{ featured['excerpt'] }}</div>
+            <div class="feat-read">Read briefing &rarr;</div>
+          </div>
         </div>
+      </a>
+      {% if posts|length > 1 %}
+      <div class="brief-grid">
+        {% for p in posts[1:] %}
+        <div class="post-card">
+          {% if p['thumb'] %}
+          <div class="post-thumb"><img src="{{ url_for('uploaded_file', filename=p['thumb']) }}" alt=""></div>
+          {% else %}
+          <div class="post-thumb empty">No image</div>
+          {% endif %}
+          <div class="post-card-body">
+            <div class="category-tag">{{ p['category'] }}</div>
+            <a class="post-link" href="{{ url_for('show_post', slug=p['slug']) }}"><h2>{{ p['title'] }}</h2></a>
+            <div class="meta">{{ p['created_at'] }}</div>
+            <div class="excerpt">{{ p['excerpt'] }}</div>
+          </div>
+        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
+      {% endif %}
     {% else %}
       <p class="meta">No posts found.</p>
     {% endif %}
@@ -9035,10 +9217,13 @@ POST_TEMPLATE = """
 <div class="layout">
 """ + sidebar_html() + """
   <main class="content">
-    <a class="btn secondary small" href="{{ url_for('index') }}">&larr; All posts</a>
-    <div class="category-tag" style="margin-top:16px;">{{ post['category'] }}</div>
-    <h1>{{ post['title'] }}</h1>
-    <div class="meta">{{ post['created_at'] }}</div>
+    <div class="article-head">
+      <a class="btn secondary small" href="{{ url_for('index') }}">&larr; All briefings</a>
+      <div class="category-tag" style="margin-top:16px;">{{ post['category'] }}</div>
+      <h1>{{ post['title'] }}</h1>
+      <div class="meta">{{ post['created_at'] }}</div>
+      <div class="article-rule"></div>
+    </div>
     <div class="post-content">{{ rendered_content|safe }}</div>
   </main>
 </div>
