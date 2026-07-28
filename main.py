@@ -25,9 +25,9 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v40"
+APP_VERSION = "v41"
 LAST_UPDATED_DATE = "July 27, 2026"
-LAST_UPDATED_TIME = "10:15 PM CT"
+LAST_UPDATED_TIME = "11:05 PM CT"
 START_TIME = time.time()
 
 # ----------------------------------------------------------------------
@@ -233,6 +233,8 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
 }
 .intel-strip .is-brand { color: var(--hdr); }
 .intel-strip .is-dot { color: var(--tq); }
+.intel-strip .is-domains { color: #CC5F00; }
+.intel-strip .is-advisory { color: #E0447C; }
 @media (max-width: 700px) { .intel-strip { display: none; } }
 
 /* ── MASTHEAD ───────────────────────────────────────────────── */
@@ -254,18 +256,18 @@ header.site-header {
 }
 .mast-bg img {
     width: 100%; height: 100%; object-fit: cover; object-position: 72% 30%;
-    display: block; opacity: 0.85;
+    display: block; opacity: 1; filter: brightness(1.35) saturate(1.08);
 }
 .mast-scrim {
     position: absolute; inset: 0; z-index: 1; pointer-events: none;
     background:
-        linear-gradient(90deg, rgba(0,0,0,0.96) 0%, rgba(0,0,0,0.88) 30%, rgba(0,0,0,0.35) 58%, rgba(0,0,0,0.55) 100%),
-        linear-gradient(180deg, rgba(0,0,0,0.25) 0%, transparent 30%, rgba(0,0,0,0.65) 100%);
+        linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.62) 28%, rgba(0,0,0,0.10) 55%, rgba(0,0,0,0.18) 100%),
+        linear-gradient(180deg, rgba(0,0,0,0.08) 0%, transparent 30%, rgba(0,0,0,0.35) 100%);
 }
 .hdr-left-block { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; gap: 12px; flex-shrink: 0; max-width: 560px; }
 .brand-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .sat-icon { width: auto; height: 104px; display: flex; align-items: center; justify-content: center; }
-.sat-icon img { height: 104px; width: auto; display: block; background: #000000; border-radius: 10px; filter: drop-shadow(0 0 18px rgba(3,177,252,0.45)); }
+.sat-icon img { height: 104px; width: auto; display: block; mix-blend-mode: screen; }
 .brand-col { display: flex; flex-direction: column; }
 .brand-title { color: #ffffff; font-size: 32px; font-weight: bold; font-style: italic; font-family: Calibri, sans-serif; letter-spacing: 0.2px; text-shadow: 0 2px 18px rgba(0,0,0,0.9); }
 .brand-title .blog-word { color: #ffffff; font-style: italic; }
@@ -9040,8 +9042,8 @@ FOOTER_BLOCK = """
 HEADER_BLOCK = '''
 <div class="intel-strip">
   <span class="is-brand">XRP Complete Intelligence Network</span>
-  <span>XRPCOMPLETE.COM <span class="is-dot">&bull;</span> XRPCOMPLETEBLOG.COM</span>
-  <span>Not Financial Advice</span>
+  <span class="is-domains">XRPCOMPLETE.COM <span class="is-dot">&bull;</span> XRPCOMPLETEBLOG.COM</span>
+  <span class="is-advisory">Not Financial Advice</span>
 </div>
 <header class="site-header">
   <div class="mast-bg"><img src="data:image/jpeg;base64,''' + ASTRONAUT_IMAGE_B64 + '''" alt=""></div>
@@ -9161,6 +9163,7 @@ INDEX_TEMPLATE = """
     <h1>{{ heading }}</h1>
     {% if subheading %}<p class="meta">{{ subheading }}</p>{% endif %}
     {% if posts %}
+      {% if featured_layout|default(false) %}
       {% set featured = posts[0] %}
       <a class="post-link" href="{{ url_for('show_post', slug=featured['slug']) }}">
         <div class="feat-card">
@@ -9179,9 +9182,11 @@ INDEX_TEMPLATE = """
           </div>
         </div>
       </a>
-      {% if posts|length > 1 %}
+      {% endif %}
+      {% set grid_posts = posts[1:] if featured_layout|default(false) else posts %}
+      {% if grid_posts %}
       <div class="brief-grid">
-        {% for p in posts[1:] %}
+        {% for p in grid_posts %}
         <div class="post-card">
           {% if p['thumb'] %}
           <div class="post-thumb"><img src="{{ url_for('uploaded_file', filename=p['thumb']) }}" alt=""></div>
@@ -9405,7 +9410,7 @@ def index():
     recent_posts, categories = sidebar_context(db)
     return render_template_string(
         INDEX_TEMPLATE, posts=posts, heading="XRP Complete Blog",
-        subheading="",
+        subheading="", featured_layout=True,
         recent_posts=recent_posts, categories=categories, **footer_ctx(db, visitor_count)
     )
 
