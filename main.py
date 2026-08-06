@@ -25,9 +25,9 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v47"
-LAST_UPDATED_DATE = "July 28, 2026"
-LAST_UPDATED_TIME = "9:40 AM CT"
+APP_VERSION = "v48-home"
+LAST_UPDATED_DATE = "August 5, 2026"
+LAST_UPDATED_TIME = "8:30 PM CT"
 START_TIME = time.time()
 
 # ----------------------------------------------------------------------
@@ -10841,67 +10841,204 @@ def attach_thumbnails(db, posts):
     return posts
 
 
+
+
+HOME_CSS = """
+/* ── HOMEPAGE V2 — EDITORIAL PUBLICATION ───────────────────── */
+.home-layout { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:28px; padding:34px 32px 56px; }
+.home-main { min-width:0; }
+.home-rail { min-width:0; }
+.home-intro { display:flex; align-items:end; justify-content:space-between; gap:24px; margin-bottom:22px; }
+.home-intro-copy { max-width:760px; }
+.home-intro h1 { font-size:clamp(34px,4vw,54px); line-height:1.02; letter-spacing:-1.6px; margin-bottom:12px; }
+.home-intro h1::after { width:94px; }
+.home-deck { margin:0; color:#aeb8ca; font-size:16px; line-height:1.65; max-width:720px; }
+.home-index { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
+.home-index a { color:#aeb8ca; text-decoration:none; font-family:var(--mn); font-size:10px; letter-spacing:1.25px; text-transform:uppercase; padding:7px 10px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.018); }
+.home-index a:hover { color:#fff; border-color:rgba(3,177,252,.65); background:rgba(3,177,252,.09); }
+
+.home-feature { position:relative; display:grid; grid-template-columns:minmax(0,1.25fr) minmax(330px,.75fr); min-height:460px; overflow:hidden; border:1px solid #22304a; border-radius:18px; background:#080c13; box-shadow:0 25px 70px rgba(0,0,0,.45); margin-bottom:34px; }
+.home-feature::after { content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit; box-shadow:inset 0 1px 0 rgba(255,255,255,.045); }
+.home-feature-media { position:relative; overflow:hidden; min-height:460px; background:linear-gradient(135deg,#111827,#05070b); }
+.home-feature-media img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .7s cubic-bezier(.2,.7,.2,1); }
+.home-feature:hover .home-feature-media img { transform:scale(1.035); }
+.home-feature-media::after { content:""; position:absolute; inset:0; background:linear-gradient(90deg,transparent 55%,rgba(8,12,19,.75) 100%),linear-gradient(0deg,rgba(0,0,0,.28),transparent 50%); }
+.home-feature-empty { height:100%; min-height:460px; display:grid; place-items:center; font-family:var(--mn); color:var(--muted); letter-spacing:2px; text-transform:uppercase; }
+.home-feature-copy { display:flex; flex-direction:column; justify-content:center; padding:42px 38px; position:relative; z-index:2; }
+.home-kicker { display:flex; align-items:center; gap:10px; color:var(--tq); font-family:var(--mn); text-transform:uppercase; letter-spacing:2.4px; font-size:10px; margin-bottom:17px; }
+.home-kicker::before { content:""; width:30px; height:2px; background:linear-gradient(90deg,var(--hdr),var(--tq)); }
+.home-feature-title { color:#fff; font-size:clamp(28px,3vw,43px); line-height:1.08; letter-spacing:-.8px; margin:10px 0 13px; }
+.home-feature-excerpt { color:#aeb8ca; font-size:16px; line-height:1.72; margin:0 0 24px; display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical; overflow:hidden; }
+.home-feature-meta { color:#7f8aa0; font-family:var(--mn); font-size:10.5px; letter-spacing:1px; text-transform:uppercase; margin-bottom:3px; }
+.home-read { display:inline-flex; align-items:center; gap:10px; align-self:flex-start; color:#06111c; background:linear-gradient(90deg,var(--hdr),#39c5ff); text-decoration:none; font-weight:800; font-size:12px; letter-spacing:1.2px; text-transform:uppercase; padding:11px 15px; border-radius:8px; box-shadow:0 8px 24px rgba(3,177,252,.18); }
+.home-read:hover { box-shadow:0 10px 30px rgba(3,177,252,.34); transform:translateY(-1px); }
+
+.home-section-head { display:flex; align-items:center; justify-content:space-between; gap:20px; margin:0 0 17px; padding-bottom:13px; border-bottom:1px solid var(--line); }
+.home-section-head h2 { font-size:22px; margin:0; color:#fff; }
+.home-section-head span { color:var(--muted); font-family:var(--mn); font-size:10px; letter-spacing:1.5px; text-transform:uppercase; }
+.home-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
+.home-card { position:relative; display:flex; flex-direction:column; min-height:100%; overflow:hidden; border:1px solid #1b273b; border-radius:14px; background:linear-gradient(180deg,#0d131e 0%,#080c13 100%); transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease; }
+.home-card:hover { transform:translateY(-4px); border-color:rgba(3,177,252,.5); box-shadow:0 18px 45px rgba(0,0,0,.42); }
+.home-card-media { position:relative; aspect-ratio:16/9; overflow:hidden; background:#05070b; border-bottom:1px solid var(--line-soft); }
+.home-card-media img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .55s ease; }
+.home-card:hover .home-card-media img { transform:scale(1.045); }
+.home-card-empty { height:100%; display:grid; place-items:center; color:var(--muted); font-family:var(--mn); font-size:10px; letter-spacing:2px; text-transform:uppercase; }
+.home-card-body { padding:19px 20px 21px; display:flex; flex-direction:column; flex:1; }
+.home-card h3 { color:#fff; font-size:21px; line-height:1.22; margin:7px 0 9px; letter-spacing:-.2px; }
+.home-card a { text-decoration:none; }
+.home-card a:hover h3 { color:var(--tq); }
+.home-card .excerpt { font-size:14.5px; line-height:1.62; -webkit-line-clamp:3; margin-bottom:16px; }
+.home-card-foot { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:auto; padding-top:14px; border-top:1px solid var(--line-soft); color:#7f8aa0; font-family:var(--mn); font-size:9.5px; letter-spacing:.8px; text-transform:uppercase; }
+.home-card-arrow { color:var(--hdr); font-size:15px; }
+
+.rail-panel { border:1px solid #1b273b; border-radius:14px; background:linear-gradient(180deg,rgba(15,21,35,.95),rgba(7,10,16,.95)); padding:18px; margin-bottom:18px; }
+.rail-title { display:flex; align-items:center; justify-content:space-between; gap:12px; color:#fff; font-size:12px; font-family:var(--mn); letter-spacing:1.7px; text-transform:uppercase; margin-bottom:14px; padding-bottom:11px; border-bottom:1px solid var(--line-soft); }
+.rail-title i { width:7px; height:7px; border-radius:50%; background:var(--tq); box-shadow:0 0 12px rgba(0,229,204,.7); }
+.rail-search input { margin:0; }
+.rail-list { list-style:none; padding:0; margin:0; }
+.rail-list li { display:grid; grid-template-columns:28px minmax(0,1fr); gap:9px; padding:11px 0; border-bottom:1px solid var(--line-soft); }
+.rail-list li:last-child { border-bottom:0; padding-bottom:0; }
+.rail-list li:first-child { padding-top:0; }
+.rail-num { color:var(--hdr); font-family:var(--mn); font-size:10px; letter-spacing:1px; padding-top:2px; }
+.rail-list a { color:#dce4ef; text-decoration:none; font-size:13.5px; line-height:1.35; }
+.rail-list a:hover { color:var(--tq); }
+.rail-categories { display:flex; flex-wrap:wrap; gap:8px; }
+.rail-categories a { color:#aeb8ca; text-decoration:none; font-size:11px; padding:6px 9px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.018); }
+.rail-categories a:hover { color:#fff; border-color:var(--hdr); }
+.rail-brand { padding:0; overflow:hidden; }
+.rail-brand img { width:100%; aspect-ratio:1/1; object-fit:cover; display:block; }
+.empty-state { border:1px dashed var(--line); border-radius:14px; padding:42px; text-align:center; color:var(--muted); }
+
+@media (max-width:1100px) {
+  .home-layout { grid-template-columns:1fr; }
+  .home-rail { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
+  .rail-panel { margin-bottom:0; }
+  .rail-brand { display:none; }
+}
+@media (max-width:820px) {
+  .home-layout { padding:26px 18px 44px; }
+  .home-intro { align-items:flex-start; flex-direction:column; }
+  .home-index { justify-content:flex-start; }
+  .home-feature { grid-template-columns:1fr; min-height:0; }
+  .home-feature-media,.home-feature-empty { min-height:280px; }
+  .home-feature-copy { padding:28px 24px 30px; }
+  .home-grid { grid-template-columns:1fr; }
+}
+@media (max-width:600px) {
+  .home-intro h1 { font-size:36px; }
+  .home-deck { font-size:15px; }
+  .home-index { display:none; }
+  .home-feature-media,.home-feature-empty { min-height:220px; }
+  .home-feature-title { font-size:29px; }
+  .home-feature-excerpt { font-size:15px; -webkit-line-clamp:4; }
+  .home-rail { grid-template-columns:1fr; }
+  .home-card h3 { font-size:20px; }
+}
+"""
+
 # ----------------------------------------------------------------------
 # PUBLIC TEMPLATES
 # ----------------------------------------------------------------------
 
 INDEX_TEMPLATE = """
 <!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>XRP Complete Blog</title><style>""" + BASE_CSS + """</style></head><body>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Independent XRP intelligence briefings, analysis, and long-form research from XRP Complete Blog.">
+<title>XRP Complete Blog — Intelligence Briefings</title>
+<style>""" + BASE_CSS + HOME_CSS + """</style></head><body>
+<a href="#briefings" style="position:absolute;left:-9999px;top:auto;">Skip to briefings</a>
 <div class="shell">
 """ + HEADER_BLOCK + """
-<div class="layout">
-""" + sidebar_html() + """
-  <main class="content">
-    <div class="page-eyebrow">Intelligence Briefings</div>
-    <h1>{{ heading }}</h1>
-    {% if subheading %}<p class="meta">{{ subheading }}</p>{% endif %}
+<div class="home-layout">
+  <main class="home-main" id="briefings">
+    <section class="home-intro" aria-labelledby="home-title">
+      <div class="home-intro-copy">
+        <div class="page-eyebrow">Independent Editorial Intelligence</div>
+        <h1 id="home-title">{{ heading }}</h1>
+        <p class="home-deck">Focused analysis of XRP, Ripple, the XRP Ledger, regulation, institutional adoption, and the infrastructure shaping the next financial system.</p>
+      </div>
+      {% if categories %}
+      <nav class="home-index" aria-label="Briefing categories">
+        {% for c in categories[:5] %}<a href="{{ url_for('by_category', category=c['category']) }}">{{ c['category'] }}</a>{% endfor %}
+      </nav>
+      {% endif %}
+    </section>
+
     {% if posts %}
       {% if featured_layout|default(false) %}
       {% set featured = posts[0] %}
-      <a class="post-link" href="{{ url_for('show_post', slug=featured['slug']) }}">
-        <div class="feat-card">
-          {% if featured['thumb'] %}
-          <div class="feat-media"><img src="{{ url_for('uploaded_file', filename=featured['thumb']) }}" alt=""></div>
-          {% else %}
-          <div class="feat-media empty">No image</div>
-          {% endif %}
-          <div class="feat-body">
-            <div class="feat-eyebrow">Latest Briefing</div>
-            <div class="category-tag">{{ featured['category'] }}</div>
-            <div class="feat-title">{{ featured['title'] }}</div>
-            <div class="feat-meta">{{ featured['created_at'] }}</div>
-            <div class="feat-excerpt">{{ featured['excerpt'] }}</div>
-            <div class="feat-read">Read briefing &rarr;</div>
-          </div>
+      <article class="home-feature">
+        <a class="home-feature-media" href="{{ url_for('show_post', slug=featured['slug']) }}" aria-label="Read {{ featured['title'] }}">
+          {% if featured['thumb'] %}<img src="{{ url_for('uploaded_file', filename=featured['thumb']) }}" alt="" fetchpriority="high">
+          {% else %}<div class="home-feature-empty">Featured briefing</div>{% endif %}
+        </a>
+        <div class="home-feature-copy">
+          <div class="home-kicker">Lead Briefing</div>
+          <div class="category-tag">{{ featured['category'] }}</div>
+          <a class="post-link" href="{{ url_for('show_post', slug=featured['slug']) }}"><h2 class="home-feature-title">{{ featured['title'] }}</h2></a>
+          <div class="home-feature-meta">Published {{ featured['created_at'] }}</div>
+          {% if featured['excerpt'] %}<p class="home-feature-excerpt">{{ featured['excerpt'] }}</p>{% endif %}
+          <a class="home-read" href="{{ url_for('show_post', slug=featured['slug']) }}">Read briefing <span aria-hidden="true">→</span></a>
         </div>
-      </a>
+      </article>
       {% endif %}
+
       {% set grid_posts = posts[1:] if featured_layout|default(false) else posts %}
       {% if grid_posts %}
-      <div class="brief-grid">
-        {% for p in grid_posts %}
-        <div class="post-card">
-          {% if p['thumb'] %}
-          <div class="post-thumb"><img src="{{ url_for('uploaded_file', filename=p['thumb']) }}" alt=""></div>
-          {% else %}
-          <div class="post-thumb empty">No image</div>
-          {% endif %}
-          <div class="post-card-body">
-            <div class="category-tag">{{ p['category'] }}</div>
-            <a class="post-link" href="{{ url_for('show_post', slug=p['slug']) }}"><h2>{{ p['title'] }}</h2></a>
-            <div class="meta">{{ p['created_at'] }}</div>
-            <div class="excerpt">{{ p['excerpt'] }}</div>
-          </div>
-        </div>
-        {% endfor %}
+      <div class="home-section-head">
+        <h2>{% if featured_layout|default(false) %}Latest Intelligence{% else %}Briefings{% endif %}</h2>
+        <span>{{ grid_posts|length }} report{% if grid_posts|length != 1 %}s{% endif %}</span>
       </div>
+      <section class="home-grid" aria-label="Latest intelligence briefings">
+        {% for p in grid_posts %}
+        <article class="home-card">
+          <a class="home-card-media" href="{{ url_for('show_post', slug=p['slug']) }}" aria-label="Read {{ p['title'] }}">
+            {% if p['thumb'] %}<img src="{{ url_for('uploaded_file', filename=p['thumb']) }}" alt="" loading="lazy">
+            {% else %}<div class="home-card-empty">Intelligence briefing</div>{% endif %}
+          </a>
+          <div class="home-card-body">
+            <div class="category-tag">{{ p['category'] }}</div>
+            <a href="{{ url_for('show_post', slug=p['slug']) }}"><h3>{{ p['title'] }}</h3></a>
+            {% if p['excerpt'] %}<div class="excerpt">{{ p['excerpt'] }}</div>{% endif %}
+            <div class="home-card-foot"><span>{{ p['created_at'] }}</span><span class="home-card-arrow" aria-hidden="true">→</span></div>
+          </div>
+        </article>
+        {% endfor %}
+      </section>
       {% endif %}
     {% else %}
-      <p class="meta">No posts found.</p>
+      <div class="empty-state">No published briefings found.</div>
     {% endif %}
   </main>
+
+  <aside class="home-rail" aria-label="Blog tools">
+    <section class="rail-panel rail-brand">
+      <a href="https://www.xrpcomplete.com" target="_blank" rel="noopener"><img src="{{ url_for('sidebar_ad_image') }}" alt="Visit XRP Complete"></a>
+    </section>
+    <section class="rail-panel">
+      <div class="rail-title"><span>Search Briefings</span><i></i></div>
+      <form class="rail-search" method="get" action="{{ url_for('search') }}">
+        <input type="search" name="q" placeholder="Search intelligence..." value="{{ query|default('') }}" aria-label="Search briefings">
+      </form>
+    </section>
+    {% if recent_posts %}
+    <section class="rail-panel">
+      <div class="rail-title"><span>Recent Intelligence</span><i></i></div>
+      <ol class="rail-list">
+        {% for p in recent_posts %}<li><span class="rail-num">{{ '%02d'|format(loop.index) }}</span><a href="{{ url_for('show_post', slug=p['slug']) }}">{{ p['title'] }}</a></li>{% endfor %}
+      </ol>
+    </section>
+    {% endif %}
+    {% if categories %}
+    <section class="rail-panel">
+      <div class="rail-title"><span>Coverage Index</span><i></i></div>
+      <div class="rail-categories">
+        {% for c in categories %}<a href="{{ url_for('by_category', category=c['category']) }}">{{ c['category'] }} · {{ c['count'] }}</a>{% endfor %}
+      </div>
+    </section>
+    {% endif %}
+  </aside>
 </div>
 </div>
 """ + FOOTER_BLOCK + """
