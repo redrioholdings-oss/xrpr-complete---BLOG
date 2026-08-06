@@ -25,10 +25,10 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v52"
+APP_VERSION = "v53"
 LAST_UPDATED_DATE = "August 5, 2026"
-LAST_UPDATED_TIME_UTC = "4:35 AM UTC"
-LAST_UPDATED_TIME_CT = "11:35 PM CST"
+LAST_UPDATED_TIME_UTC = "4:50 AM UTC"
+LAST_UPDATED_TIME_CT = "11:50 PM CST"
 
 # v48 display + timing constants -----------------------------------------
 # Shown in the intel strip, trust strip, and Network Status sidebar panel.
@@ -11021,7 +11021,7 @@ HEADER_BLOCK = '''
   <div class="mast-scrim"></div>
   <div class="hdr-left-block">
     <div class="hero-eyebrow">XRP Complete Blog</div>
-    <h1 class="hero-title">The <em>NEW</em> XRP<br>Intelligence Standard</h1>
+    <h1 class="hero-title">The <em>NEW</em> XRP<br>Intelligence Standard BLOG</h1>
     <p class="hero-sub">Real-time intelligence, deep analysis, and institutional insights on the XRP Ledger and the future of finance.</p>
     <div class="hero-feats">
       <span class="hf-item">
