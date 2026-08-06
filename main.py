@@ -25,10 +25,10 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v51"
+APP_VERSION = "v52"
 LAST_UPDATED_DATE = "August 5, 2026"
-LAST_UPDATED_TIME_UTC = "3:15 AM UTC"
-LAST_UPDATED_TIME_CT = "10:15 PM CST"
+LAST_UPDATED_TIME_UTC = "4:35 AM UTC"
+LAST_UPDATED_TIME_CT = "11:35 PM CST"
 
 # v48 display + timing constants -----------------------------------------
 # Shown in the intel strip, trust strip, and Network Status sidebar panel.
@@ -361,7 +361,7 @@ header.site-header {
     transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
 .hf-item:hover .hf-icon { border-color: rgba(0,140,255,0.85); box-shadow: 0 0 26px rgba(0,140,255,0.35); }
-.hf-icon svg { width: 22px; height: 22px; stroke: var(--xrp); fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.hf-icon svg { width: 22px; height: 22px; stroke: var(--xrp); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .hf-label {
     color: #cfd8e6; font-family: var(--mn); font-size: 8.5px; letter-spacing: 1.6px;
     text-transform: uppercase; line-height: 1.5; text-shadow: 0 1px 8px rgba(0,0,0,0.9);
@@ -11025,19 +11025,19 @@ HEADER_BLOCK = '''
     <p class="hero-sub">Real-time intelligence, deep analysis, and institutional insights on the XRP Ledger and the future of finance.</p>
     <div class="hero-feats">
       <span class="hf-item">
-        <span class="hf-icon"><svg viewBox="0 0 24 24"><path d="M4.5 17a9 9 0 1 1 15 0"/><path d="M12 13l3.5-4.5"/><circle cx="12" cy="13.5" r="1.6"/></svg></span>
+        <span class="hf-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 13l3.5-3.5"/><path d="M9 5.5 8 4M15 5.5 16 4"/></svg></span>
         <span class="hf-label">Real-Time Intelligence</span>
       </span>
       <span class="hf-item">
-        <span class="hf-icon"><svg viewBox="0 0 24 24"><path d="M12 2v2"/><path d="M8.5 8.5a3.5 3.5 0 0 1 7 0"/><path d="M7.5 8.5h9"/><path d="M5.5 11.5h13"/><path d="M7 11.5v6.5M10.3 11.5v6.5M13.7 11.5v6.5M17 11.5v6.5"/><path d="M4.5 18h15M3.5 21h17"/></svg></span>
+        <span class="hf-icon"><svg viewBox="0 0 24 24"><path d="M3 9 12 4l9 5H3z"/><path d="M6 9v8M10 9v8M14 9v8M18 9v8"/><path d="M4 17h16M3 20h18"/></svg></span>
         <span class="hf-label">Regulatory Monitor</span>
       </span>
       <span class="hf-item">
-        <span class="hf-icon"><svg viewBox="0 0 24 24"><path d="M5 21V8h5.5v13"/><path d="M13.5 21V4H19v13"/><path d="M19 17v4"/><path d="M7 11h1.5M7 14h1.5M7 17h1.5"/><path d="M15.5 7h1.5M15.5 10h1.5M15.5 13h1.5M15.5 16h1.5"/><path d="M3 21h18"/></svg></span>
+        <span class="hf-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.3 2.6 14.7 0 17-2.6-2.3-2.6-14.7 0-17z"/></svg></span>
         <span class="hf-label">Institutional Adoption</span>
       </span>
       <span class="hf-item">
-        <span class="hf-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="18" r="2.2"/><circle cx="19" cy="18" r="2.2"/><path d="M10.8 6.8L6.2 16.2M13.2 6.8l4.6 9.4M7.2 18h9.6"/></svg></span>
+        <span class="hf-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.8"/><circle cx="5" cy="5" r="1.8"/><circle cx="19" cy="5" r="1.8"/><circle cx="5" cy="19" r="1.8"/><circle cx="19" cy="19" r="1.8"/><path d="M6.3 6.3 10.7 10.7M17.7 6.3 13.3 10.7M6.3 17.7 10.7 13.3M17.7 17.7 13.3 13.3"/></svg></span>
         <span class="hf-label">XRPL Ecosystem</span>
       </span>
     </div>
