@@ -25,10 +25,10 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v50"
+APP_VERSION = "v55"
 LAST_UPDATED_DATE = "August 5, 2026"
-LAST_UPDATED_TIME_UTC = "3:00 AM UTC"
-LAST_UPDATED_TIME_CT = "10:00 PM CST"
+LAST_UPDATED_TIME_UTC = "5:10 PM UTC"
+LAST_UPDATED_TIME_CT = "12:10 PM CST"
 
 # v48 display + timing constants -----------------------------------------
 # Shown in the intel strip, trust strip, and Network Status sidebar panel.
@@ -361,7 +361,7 @@ header.site-header {
     transition: box-shadow 0.15s ease, border-color 0.15s ease;
 }
 .hf-item:hover .hf-icon { border-color: rgba(0,140,255,0.85); box-shadow: 0 0 26px rgba(0,140,255,0.35); }
-.hf-icon svg { width: 22px; height: 22px; stroke: var(--xrp); fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.hf-icon svg { width: 22px; height: 22px; stroke: var(--xrp); fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .hf-label {
     color: #cfd8e6; font-family: var(--mn); font-size: 8.5px; letter-spacing: 1.6px;
     text-transform: uppercase; line-height: 1.5; text-shadow: 0 1px 8px rgba(0,0,0,0.9);
@@ -10949,7 +10949,7 @@ ASTRONAUT_IMAGE_B64 = (
 FOOTER_BLOCK = """
 <section class="ad-strip">
   <div class="ad-strip-label">Advertisement</div>
-  <a class="ad-strip-slot" href="https://www.xrpcomplete.com" target="_blank" rel="noopener">
+  <a class="ad-strip-slot" href="https://xrpcomplete.com" target="_blank" rel="noopener">
     <img src="{{ url_for('sidebar_ad_image') }}" alt="XRP Complete">
   </a>
 </section>
@@ -10975,7 +10975,7 @@ FOOTER_BLOCK = """
       <a href="/privacy">Privacy Policy</a>
       <a href="/disclaimer">Disclaimer</a>
       <a href="/terms">Terms of Use</a>
-      <a href="https://www.xrpcomplete.com" target="_blank" rel="noopener">Contact</a>
+      <a href="https://xrpcomplete.com" target="_blank" rel="noopener">Contact</a>
     </span>
   </div>
   <div class="foot-copy">\u00a9 2026 XRP Complete Blog. All Rights Reserved.</div>
@@ -11021,23 +11021,23 @@ HEADER_BLOCK = '''
   <div class="mast-scrim"></div>
   <div class="hdr-left-block">
     <div class="hero-eyebrow">XRP Complete Blog</div>
-    <h1 class="hero-title">The <em>NEW</em> XRP<br>Intelligence Standard</h1>
+    <h1 class="hero-title">The <em>NEW</em> XRP<br>Intelligence Standard BLOG</h1>
     <p class="hero-sub">Real-time intelligence, deep analysis, and institutional insights on the XRP Ledger and the future of finance.</p>
     <div class="hero-feats">
       <span class="hf-item">
-        <span class="hf-icon"><svg viewBox="0 0 24 24"><path d="M4.5 17a9 9 0 1 1 15 0"/><path d="M12 13l3.5-4.5"/><circle cx="12" cy="13.5" r="1.6"/></svg></span>
+        <span class="hf-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 13l3.5-3.5"/><path d="M9 5.5 8 4M15 5.5 16 4"/></svg></span>
         <span class="hf-label">Real-Time Intelligence</span>
       </span>
       <span class="hf-item">
-        <span class="hf-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-5 9 5"/><path d="M5 9v8M9.5 9v8M14.5 9v8M19 9v8"/><path d="M3 17h18M3 20h18"/></svg></span>
+        <span class="hf-icon"><svg viewBox="0 0 24 24"><path d="M3 9 12 4l9 5H3z"/><path d="M6 9v8M10 9v8M14 9v8M18 9v8"/><path d="M4 17h16M3 20h18"/></svg></span>
         <span class="hf-label">Regulatory Monitor</span>
       </span>
       <span class="hf-item">
-        <span class="hf-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 2.6 2.8 15.4 0 18M12 3c-2.8 2.6-2.8 15.4 0 18"/></svg></span>
+        <span class="hf-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.3 2.6 14.7 0 17-2.6-2.3-2.6-14.7 0-17z"/></svg></span>
         <span class="hf-label">Institutional Adoption</span>
       </span>
       <span class="hf-item">
-        <span class="hf-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="18" r="2.2"/><circle cx="19" cy="18" r="2.2"/><path d="M10.8 6.8L6.2 16.2M13.2 6.8l4.6 9.4M7.2 18h9.6"/></svg></span>
+        <span class="hf-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.8"/><circle cx="5" cy="5" r="1.8"/><circle cx="19" cy="5" r="1.8"/><circle cx="5" cy="19" r="1.8"/><circle cx="19" cy="19" r="1.8"/><path d="M6.3 6.3 10.7 10.7M17.7 6.3 13.3 10.7M6.3 17.7 10.7 13.3M17.7 17.7 13.3 13.3"/></svg></span>
         <span class="hf-label">XRPL Ecosystem</span>
       </span>
     </div>
@@ -11053,7 +11053,7 @@ HEADER_BLOCK = '''
     <div class="console-row"><span class="ck">Updated</span><span class="cv">{{ last_updated_date }}</span></div>
     <div class="console-row"><span class="ck">&nbsp;</span><span class="cv">{{ last_updated_utc }}</span></div>
     <div class="console-row"><span class="ck">&nbsp;</span><span class="cv">{{ last_updated_ct }}</span></div>
-    <a class="visit-btn" href="https://www.xrpcomplete.com" target="_blank" rel="noopener">WEBSITE</a>
+    <a class="visit-btn" href="https://xrpcomplete.com" target="_blank" rel="noopener">WEBSITE</a>
   </div>
 </header>
 '''
@@ -11094,11 +11094,11 @@ def sidebar_html():
     <div class="sb-block">
       <div class="sb-title">Network Status</div>
 """ + _network_status_rows() + """
-      <a class="sb-view-all" href="https://www.xrpcomplete.com" target="_blank" rel="noopener">View Full Dashboard &rarr;</a>
+      <a class="sb-view-all" href="https://xrpcomplete.com" target="_blank" rel="noopener">View Full Dashboard &rarr;</a>
     </div>
   </div>
   <div class="sb-panel sb-net">
-    <a href="https://www.xrpcomplete.com" target="_blank" rel="noopener"
+    <a href="https://xrpcomplete.com" target="_blank" rel="noopener"
        style="display:block;width:100%;aspect-ratio:1/1;overflow:hidden;">
       <img src="{{ url_for('sidebar_ad_image') }}" alt="XRP Complete"
            style="width:100%;height:100%;object-fit:cover;display:block;">
@@ -11468,7 +11468,7 @@ intelligence, deep analysis, and institutional insights on the XRP Ledger and th
   </div>
 </section>
 <p>Read the latest briefings on the <a href="/" style="color:var(--xrp);">homepage</a>, or visit the full
-intelligence dashboard at <a href="https://www.xrpcomplete.com" target="_blank" rel="noopener" style="color:var(--xrp);">XRPCOMPLETE.COM</a>.</p>
+intelligence dashboard at <a href="https://xrpcomplete.com" target="_blank" rel="noopener" style="color:var(--xrp);">XRPCOMPLETE.COM</a>.</p>
 """
 
 DISCLAIMER_BODY = """
