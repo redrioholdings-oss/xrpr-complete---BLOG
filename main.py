@@ -25,9 +25,22 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v48-home"
+APP_VERSION = "v48"
 LAST_UPDATED_DATE = "August 5, 2026"
-LAST_UPDATED_TIME = "8:30 PM CT"
+LAST_UPDATED_TIME = "9:15 PM CT"
+
+# v48 display + timing constants -----------------------------------------
+# Shown in the intel strip, trust strip, and Network Status sidebar panel.
+# Edit the values here to update them everywhere they appear.
+GLOBAL_SOURCES = "306+"
+NETWORK_STATUS = [
+    ("Global Sources", "306+"),
+    ("News Analyzed (24h)", "24,816"),
+    ("Social Mentions (24h)", "18,429"),
+    ("On-Chain Events (24h)", "12,763"),
+]
+# UTC hours of the four daily briefing slots the hero countdown targets.
+BRIEF_SLOTS_UTC = [0, 6, 12, 18]
 START_TIME = time.time()
 
 # ----------------------------------------------------------------------
@@ -91,6 +104,15 @@ def init_db():
             title TEXT NOT NULL,
             filename TEXT,
             body TEXT,
+            created_at TEXT NOT NULL
+        )
+        """
+    )
+    conn.execute(
+        """
+        CREATE TABLE IF NOT EXISTS subscribers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT UNIQUE NOT NULL,
             created_at TEXT NOT NULL
         )
         """
@@ -196,6 +218,7 @@ BASE_CSS = """
     --hdr: #03b1fc;
     --tq: #00e5cc;
     --navy: #1A2942;
+    --xrp: #008CFF;
     --bg: #000000;
     --panel: #070a10;
     --card: #0a0e16;
@@ -222,103 +245,165 @@ a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visib
     outline: 2px solid var(--hdr); outline-offset: 2px;
 }
 
+/* ── TOP NAV ────────────────────────────────────────────────── */
+nav.top-nav {
+    display: flex; align-items: center; justify-content: space-between; gap: 20px;
+    padding: 12px 28px;
+    background: rgba(2,4,8,0.95);
+    border-bottom: 1px solid var(--line-soft);
+}
+.nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; flex-shrink: 0; }
+.nav-brand img { height: 40px; width: auto; display: block; mix-blend-mode: screen; border-radius: 6px; }
+.nav-brand-col { display: flex; flex-direction: column; line-height: 1.1; }
+.nav-brand-name { color: #fff; font-weight: bold; font-size: 17px; letter-spacing: 0.6px; }
+.nav-brand-name .nb-lite { color: var(--xrp); }
+.nav-brand-sub { color: var(--muted); font-family: var(--mn); font-size: 8.5px; letter-spacing: 3px; text-transform: uppercase; margin-top: 2px; }
+.nav-links { display: flex; align-items: center; gap: 26px; }
+.nav-links a {
+    color: var(--muted); text-decoration: none;
+    font-family: var(--mn); font-size: 11px; letter-spacing: 1.8px; text-transform: uppercase;
+    padding: 6px 0; position: relative; transition: color 0.15s ease;
+}
+.nav-links a:hover { color: var(--text); }
+.nav-links a.nl-active { color: var(--xrp); }
+.nav-links a.nl-active::after {
+    content: ""; position: absolute; left: 0; right: 0; bottom: -1px; height: 2px;
+    background: linear-gradient(90deg, var(--xrp), var(--tq)); border-radius: 2px;
+}
+.nav-search { display: inline-flex; align-items: center; color: var(--muted); flex-shrink: 0; padding: 6px; border-radius: 8px; transition: color 0.15s ease; }
+.nav-search:hover { color: var(--xrp); }
+.nav-search svg { width: 18px; height: 18px; display: block; }
+@media (max-width: 1050px) { .nav-links { display: none; } }
+
 /* ── INTELLIGENCE STRIP ─────────────────────────────────────── */
 .intel-strip {
     display: flex; align-items: center; justify-content: space-between; gap: 16px;
-    padding: 7px 24px;
+    padding: 7px 28px;
     font-family: var(--mn); font-size: 10.5px; letter-spacing: 2px; text-transform: uppercase;
     color: var(--muted);
+    background: var(--navy);
     border-bottom: 1px solid var(--line-soft);
-    background: linear-gradient(90deg, rgba(3,177,252,0.06), transparent 40%, transparent 60%, rgba(0,229,204,0.05));
 }
-.intel-strip .is-brand { color: var(--hdr); }
-.intel-strip .is-dot { color: #CC5F00; }
-.intel-strip .is-domains { color: #CC5F00; }
-.intel-strip .is-advisory { color: #E0447C; }
+.intel-strip .is-brand { color: #cfe4f5; display: inline-flex; align-items: center; gap: 8px; }
+.intel-strip .is-src-dot { width: 7px; height: 7px; border-radius: 50%; background: #35d07f; box-shadow: 0 0 8px rgba(53,208,127,0.8); flex-shrink: 0; }
+.intel-strip .is-dot { color: var(--muted); }
+.intel-strip .is-domains { color: #cfe4f5; }
+.intel-strip .is-advisory { color: #E0447C; font-weight: bold; }
 @media (max-width: 700px) { .intel-strip { display: none; } }
 
-/* ── MASTHEAD ───────────────────────────────────────────────── */
+/* ── HERO ───────────────────────────────────────────────────── */
 header.site-header {
     position: relative;
     display: flex;
-    align-items: stretch;
+    align-items: center;
     justify-content: space-between;
-    gap: 24px;
-    min-height: 420px;
-    padding: 28px 32px;
+    gap: 30px;
+    min-height: 560px;
+    padding: 48px 44px;
     overflow: hidden;
     background: #000;
     border-bottom: 1px solid transparent;
-    border-image: linear-gradient(90deg, var(--hdr), var(--tq) 55%, transparent) 1;
+    border-image: linear-gradient(90deg, var(--xrp), var(--tq) 55%, transparent) 1;
 }
-.mast-bg {
-    position: absolute; inset: 0; z-index: 0; pointer-events: none;
-}
+.mast-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
 .mast-bg img {
-    width: 100%; height: 100%; object-fit: cover; object-position: 62% 50%;
-    display: block; opacity: 1; filter: brightness(1.35) saturate(1.08);
+    width: 100%; height: 100%; object-fit: cover; object-position: 68% 42%;
+    display: block; opacity: 1; filter: brightness(1.2) saturate(1.05);
 }
 .mast-scrim {
     position: absolute; inset: 0; z-index: 1; pointer-events: none;
     background:
-        linear-gradient(90deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.62) 28%, rgba(0,0,0,0.10) 55%, rgba(0,0,0,0.18) 100%),
-        linear-gradient(180deg, rgba(0,0,0,0.08) 0%, transparent 30%, rgba(0,0,0,0.35) 100%);
+        linear-gradient(90deg, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.78) 30%, rgba(0,0,0,0.15) 58%, rgba(0,0,0,0.30) 100%),
+        linear-gradient(180deg, rgba(0,0,0,0.20) 0%, transparent 30%, rgba(0,0,0,0.50) 100%);
 }
-.hdr-left-block { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; gap: 12px; flex-shrink: 0; max-width: 560px; }
-.brand-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.sat-icon { width: auto; height: 104px; display: flex; align-items: center; justify-content: center; }
-.sat-icon img { height: 104px; width: auto; display: block; mix-blend-mode: screen; }
-.brand-col { display: flex; flex-direction: column; }
-.brand-title { color: #ffffff; font-size: 32px; font-weight: bold; font-style: italic; font-family: Calibri, sans-serif; letter-spacing: 0.2px; text-shadow: 0 2px 18px rgba(0,0,0,0.9); }
-.brand-title .blog-word { color: #ffffff; font-style: italic; }
-.brand-tagline { color: var(--hdr); font-size: 17px; font-family: Calibri, sans-serif; margin-top: 5px; white-space: nowrap; text-shadow: 0 1px 12px rgba(0,0,0,0.9); }
-.brand-tagline em { font-style: italic; }
-.cta-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
-.suffixes { color: #ffffff; font-size: 15px; }
+.hdr-left-block { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; gap: 0; flex-shrink: 0; max-width: 600px; }
+.hero-eyebrow {
+    font-family: var(--mn); font-size: 11px; letter-spacing: 4px; text-transform: uppercase;
+    color: var(--xrp); margin-bottom: 16px; text-shadow: 0 1px 10px rgba(0,0,0,0.9);
+}
+.hero-title {
+    color: #fff; font-size: 50px; font-weight: bold; line-height: 1.08; letter-spacing: 0.2px;
+    margin: 0 0 18px; text-shadow: 0 2px 24px rgba(0,0,0,0.9);
+    font-family: Calibri, sans-serif;
+}
+.hero-title em { color: var(--xrp); font-style: italic; }
+.hero-sub {
+    color: #c4cddc; font-size: 17.5px; line-height: 1.6; max-width: 470px;
+    margin: 0 0 26px; text-shadow: 0 1px 12px rgba(0,0,0,0.9);
+}
+.hero-feats { display: flex; align-items: flex-start; gap: 26px; margin-bottom: 30px; flex-wrap: wrap; }
+.hf-item {
+    display: flex; flex-direction: column; align-items: center; gap: 9px;
+    width: 86px; text-align: center; text-decoration: none;
+}
+.hf-icon {
+    width: 46px; height: 46px; border-radius: 12px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,140,255,0.10);
+    border: 1px solid rgba(0,140,255,0.4);
+    box-shadow: 0 0 20px rgba(0,140,255,0.15), inset 0 1px 0 rgba(255,255,255,0.05);
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.hf-item:hover .hf-icon { border-color: rgba(0,140,255,0.85); box-shadow: 0 0 26px rgba(0,140,255,0.35); }
+.hf-icon svg { width: 22px; height: 22px; stroke: var(--xrp); fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.hf-label {
+    color: #cfd8e6; font-family: var(--mn); font-size: 8.5px; letter-spacing: 1.6px;
+    text-transform: uppercase; line-height: 1.5; text-shadow: 0 1px 8px rgba(0,0,0,0.9);
+}
+.cta-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.cta-primary {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: var(--xrp); color: #04101c;
+    font-weight: bold; font-size: 13px; letter-spacing: 1.4px; text-transform: uppercase;
+    font-family: Calibri, sans-serif;
+    padding: 12px 22px; border-radius: 9px; text-decoration: none;
+    box-shadow: 0 8px 28px rgba(0,140,255,0.35);
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.cta-primary:hover { box-shadow: 0 10px 36px rgba(0,140,255,0.6); transform: translateY(-1px); }
+.visit-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: rgba(2,6,12,0.55);
+    color: var(--xrp);
+    border: 2px solid var(--xrp);
+    font-weight: bold;
+    padding: 10px 20px;
+    border-radius: 9px;
+    text-decoration: none;
+    font-size: 13px;
+    letter-spacing: 1.4px;
+    text-transform: uppercase;
+    font-family: Calibri, sans-serif;
+    transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+}
+.visit-btn:hover { background: var(--xrp); color: #04101c; box-shadow: 0 0 22px rgba(0,140,255,0.55); }
 .hdr-astronaut { display: none; }
 
-/* status console */
+/* floating status card */
 .hdr-right {
     position: relative; z-index: 2;
-    align-self: center;
+    align-self: flex-start;
     display: flex; flex-direction: column; gap: 0;
-    min-width: 210px;
-    background: rgba(4,7,12,0.82);
+    min-width: 236px;
+    background: rgba(4,7,12,0.85);
     border: 1px solid var(--line);
-    border-radius: 12px;
-    padding: 14px 16px 16px;
+    border-radius: 14px;
+    padding: 16px 18px 18px;
     font-family: var(--mn); font-size: 11.5px; color: var(--muted);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.04);
-    backdrop-filter: blur(4px);
+    box-shadow: 0 16px 50px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05);
+    backdrop-filter: blur(6px);
     white-space: nowrap;
 }
 .console-head {
     display: flex; align-items: center; justify-content: space-between; gap: 14px;
-    padding-bottom: 10px; margin-bottom: 10px;
+    padding-bottom: 11px; margin-bottom: 11px;
     border-bottom: 1px solid var(--line-soft);
 }
 .console-row { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 3.5px 0; letter-spacing: 0.5px; }
 .console-row .ck { color: var(--muted); text-transform: uppercase; font-size: 10px; letter-spacing: 1.6px; }
 .console-row .cv { color: var(--text); }
-.hdr-right .visit-btn { margin-top: 12px; justify-content: center; }
-.visit-btn {
-    display: inline-flex;
-    align-items: center;
-    background: transparent;
-    color: #008CFF;
-    border: 2px solid #008CFF;
-    font-weight: bold;
-    padding: 5px 14px;
-    border-radius: 8px;
-    text-decoration: none;
-    font-size: 13px;
-    letter-spacing: 1px;
-    font-family: Calibri, sans-serif;
-    transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
-}
-.visit-btn:hover { background: #008CFF; color: #04101c; box-shadow: 0 0 22px rgba(0,140,255,0.55); }
-.visit-sub { color: var(--hdr); font-size: 12px; font-family: Calibri, sans-serif; }
-.visit-sub em { font-style: italic; }
 .live-badge { display: inline-flex; align-items: center; gap: 7px; color: #6bb072; font-weight: bold; font-size: 12px; border: 1.5px solid #6bb072; border-radius: 8px; padding: 3px 10px; font-family: var(--mn); letter-spacing: 2px; }
 .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--tq); box-shadow: 0 0 0 0 rgba(0,229,204,0.6); animation: pulse 1.6s infinite; }
 @keyframes pulse {
@@ -327,43 +412,115 @@ header.site-header {
   70% { box-shadow: 0 0 0 8px rgba(0,229,204,0); }
   100% { box-shadow: 0 0 0 0 rgba(0,229,204,0); opacity: 1; }
 }
+.next-brief {
+    margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line-soft);
+}
+.nb-label {
+    display: inline-flex; align-items: center; gap: 7px;
+    color: var(--xrp); font-size: 10px; letter-spacing: 1.8px; text-transform: uppercase;
+    margin-bottom: 10px;
+}
+.nb-label svg { width: 13px; height: 13px; stroke: var(--xrp); fill: none; stroke-width: 2; stroke-linecap: round; }
+.nb-cells { display: flex; align-items: stretch; gap: 8px; }
+.nb-cell {
+    flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px;
+    background: rgba(0,140,255,0.07); border: 1px solid rgba(0,140,255,0.25);
+    border-radius: 8px; padding: 7px 4px 6px;
+}
+.nb-num { color: #fff; font-size: 19px; font-weight: bold; letter-spacing: 1px; }
+.nb-unit { color: var(--muted); font-size: 8.5px; letter-spacing: 1.6px; text-transform: uppercase; }
+.about-btn {
+    margin-top: 14px;
+    display: flex; align-items: center; justify-content: center; gap: 7px;
+    background: transparent; color: var(--xrp);
+    border: 1.5px solid rgba(0,140,255,0.55); border-radius: 9px;
+    padding: 8px 12px; text-decoration: none;
+    font-family: var(--mn); font-size: 10.5px; letter-spacing: 1.8px; text-transform: uppercase;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.about-btn:hover { background: var(--xrp); color: #04101c; }
+.visit-sub { color: var(--hdr); font-size: 12px; font-family: Calibri, sans-serif; }
+.visit-sub em { font-style: italic; }
+.brand-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.sat-icon { display: none; }
+.brand-col { display: flex; flex-direction: column; }
+.brand-title { color: #ffffff; font-size: 32px; font-weight: bold; font-style: italic; font-family: Calibri, sans-serif; }
+.brand-title .blog-word { color: #ffffff; font-style: italic; }
+.brand-tagline { color: var(--hdr); font-size: 17px; }
+.brand-tagline em { font-style: italic; }
+.suffixes { color: #ffffff; font-size: 15px; }
 
-/* ── LAYOUT ─────────────────────────────────────────────────── */
+/* ── LAYOUT (content left, sidebar right) ───────────────────── */
 .layout { display: flex; min-height: 70vh; }
 aside.sidebar {
-    width: 21%;
-    min-width: 240px;
-    border-right: 1px solid var(--line-soft);
-    padding: 28px 20px;
+    order: 2;
+    width: 24%;
+    min-width: 270px;
+    border-left: 1px solid var(--line-soft);
+    border-right: none;
+    padding: 30px 22px;
     background: linear-gradient(180deg, rgba(26,41,66,0.12) 0%, transparent 260px);
 }
-main.content { width: 79%; padding: 30px 36px 44px; }
+main.content { order: 1; width: 76%; padding: 34px 38px 48px; }
 
 .sb-panel {
     background: var(--panel);
     border: 1px solid var(--line-soft);
-    border-radius: 12px;
-    padding: 16px;
+    border-radius: 14px;
+    padding: 18px;
     margin-bottom: 20px;
 }
 .sb-panel.sb-net { padding: 0; overflow: hidden; border-color: var(--line); }
 .sb-block { margin-bottom: 0; }
 .sb-title {
-    color: var(--hdr); font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
-    margin-bottom: 12px; font-family: var(--mn); padding-bottom: 8px; position: relative;
+    color: #fff; font-size: 11px; text-transform: uppercase; letter-spacing: 2px;
+    margin-bottom: 14px; font-family: var(--mn); padding-bottom: 9px; position: relative;
 }
 .sb-title::after {
     content: ""; position: absolute; left: 0; bottom: 0; width: 34px; height: 2px;
-    background: linear-gradient(90deg, var(--hdr), var(--tq)); border-radius: 2px;
+    background: linear-gradient(90deg, var(--xrp), var(--tq)); border-radius: 2px;
 }
 .sb-list { list-style: none; padding: 0; margin: 0; }
-.sb-list li { margin: 0; padding: 8px 0; border-bottom: 1px solid var(--line-soft); display: flex; align-items: baseline; gap: 10px; }
+.sb-list li { margin: 0; padding: 9px 0; border-bottom: 1px solid var(--line-soft); display: flex; align-items: center; gap: 10px; }
 .sb-list li:last-child { border-bottom: none; padding-bottom: 0; }
 .sb-list li:first-child { padding-top: 0; }
 .sb-idx { font-family: var(--mn); font-size: 10.5px; color: var(--hdr); opacity: 0.9; flex-shrink: 0; letter-spacing: 1px; }
 .sb-list a { color: var(--text); text-decoration: none; font-size: 14px; line-height: 1.4; display: block; flex: 1; transition: color 0.15s ease; }
 .sb-list a:hover { color: var(--tq); }
 .sb-cat-count { color: var(--muted); font-size: 11.5px; font-family: var(--mn); margin-left: auto; flex-shrink: 0; }
+.topic-ico { width: 26px; height: 26px; border-radius: 8px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: rgba(0,140,255,0.10); border: 1px solid rgba(0,140,255,0.3); }
+.topic-ico svg { width: 13px; height: 13px; stroke: var(--xrp); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.count-pill {
+    margin-left: auto; flex-shrink: 0;
+    background: rgba(0,140,255,0.14); color: var(--xrp);
+    border: 1px solid rgba(0,140,255,0.3);
+    font-family: var(--mn); font-size: 10.5px; letter-spacing: 0.5px;
+    padding: 2px 9px; border-radius: 999px;
+}
+.sb-view-all {
+    display: inline-block; margin-top: 13px;
+    color: var(--xrp); text-decoration: none;
+    font-family: var(--mn); font-size: 10.5px; letter-spacing: 1.8px; text-transform: uppercase;
+}
+.sb-view-all:hover { color: var(--tq); }
+.sb-sub-copy { color: var(--muted); font-size: 13.5px; line-height: 1.55; margin: 0 0 12px; }
+.sub-form { display: flex; flex-direction: column; gap: 0; }
+.sub-form input[type=email] { margin-bottom: 10px; font-size: 13.5px; }
+.sub-btn {
+    background: var(--xrp); color: #04101c; font-weight: bold;
+    border: none; border-radius: 7px; padding: 10px 12px; cursor: pointer;
+    font-family: Calibri, sans-serif; font-size: 13px; letter-spacing: 1.2px; text-transform: uppercase;
+    transition: box-shadow 0.15s ease;
+}
+.sub-btn:hover { box-shadow: 0 0 18px rgba(0,140,255,0.5); }
+.sub-privacy { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 11.5px; margin-top: 11px; }
+.sub-privacy svg { width: 12px; height: 12px; stroke: var(--muted); fill: none; stroke-width: 2; flex-shrink: 0; }
+.sub-ok { color: var(--tq); font-size: 12.5px; margin-top: 10px; font-family: var(--mn); }
+.net-row { display: flex; align-items: center; gap: 9px; padding: 8px 0; border-bottom: 1px solid var(--line-soft); }
+.net-row:last-of-type { border-bottom: none; }
+.net-dot { width: 7px; height: 7px; border-radius: 50%; background: #35d07f; box-shadow: 0 0 7px rgba(53,208,127,0.7); flex-shrink: 0; }
+.net-key { color: var(--muted); font-size: 13px; }
+.net-val { margin-left: auto; color: #fff; font-family: var(--mn); font-size: 12.5px; letter-spacing: 0.5px; }
 .search-form input { width: 100%; margin-bottom: 0; font-family: var(--mn); font-size: 13px; }
 
 /* ── HEADINGS / META ────────────────────────────────────────── */
@@ -381,6 +538,24 @@ h2 { color: var(--text); font-size: 22px; margin: 4px 0 8px; line-height: 1.25; 
 .excerpt { color: var(--muted); font-size: 15.5px; line-height: 1.65; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
 a.post-link { color: var(--text); text-decoration: none; }
 a.post-link:hover h2, a.post-link:hover .feat-title { color: var(--tq); }
+.section-head {
+    display: flex; align-items: baseline; justify-content: space-between; gap: 16px;
+    margin-bottom: 24px; padding-bottom: 12px; position: relative;
+}
+.section-head::after {
+    content: ""; position: absolute; left: 0; bottom: 0; width: 100%; height: 1px;
+    background: linear-gradient(90deg, var(--line), transparent);
+}
+.section-title {
+    color: #fff; font-size: 15px; font-weight: bold; letter-spacing: 2.4px; text-transform: uppercase;
+    font-family: Calibri, sans-serif; display: inline-flex; align-items: center; gap: 11px;
+}
+.section-title::before { content: ""; width: 4px; height: 17px; border-radius: 2px; background: linear-gradient(180deg, var(--xrp), var(--tq)); }
+.section-link {
+    color: var(--xrp); text-decoration: none;
+    font-family: var(--mn); font-size: 10.5px; letter-spacing: 1.8px; text-transform: uppercase;
+}
+.section-link:hover { color: var(--tq); }
 
 /* ── FEATURED BRIEFING ──────────────────────────────────────── */
 .feat-card {
@@ -409,10 +584,10 @@ a.post-link:hover h2, a.post-link:hover .feat-title { color: var(--tq); }
 .feat-body { flex: 1; padding: 30px 34px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
 .feat-eyebrow {
     display: inline-flex; align-items: center; gap: 9px;
-    font-family: var(--mn); font-size: 10.5px; letter-spacing: 3px; text-transform: uppercase; color: var(--tq);
+    font-family: var(--mn); font-size: 10.5px; letter-spacing: 3px; text-transform: uppercase; color: #e08a3c;
     margin-bottom: 14px;
 }
-.feat-eyebrow::before { content: ""; width: 22px; height: 2px; background: linear-gradient(90deg, var(--hdr), var(--tq)); border-radius: 2px; }
+.feat-eyebrow::before { content: ""; width: 22px; height: 2px; background: linear-gradient(90deg, #e08a3c, var(--hdr)); border-radius: 2px; }
 .feat-title { color: #fff; font-size: 30px; font-weight: bold; line-height: 1.18; margin: 0 0 12px; }
 .feat-meta { color: var(--muted); font-family: var(--mn); font-size: 12px; letter-spacing: 0.8px; margin-bottom: 14px; }
 .feat-excerpt { color: var(--muted); font-size: 16px; line-height: 1.7; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 18px; }
@@ -428,7 +603,7 @@ a.post-link:hover h2, a.post-link:hover .feat-title { color: var(--tq); }
 /* ── BRIEFING GRID ──────────────────────────────────────────── */
 .brief-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 20px;
 }
 .post-card {
@@ -470,8 +645,8 @@ a.post-link:hover h2, a.post-link:hover .feat-title { color: var(--tq); }
 .post-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s ease; }
 .post-card:hover .post-thumb img { transform: scale(1.05); }
 .post-thumb.empty { color: var(--muted); font-size: 11px; letter-spacing: 2px; border-bottom-style: dashed; font-family: var(--mn); text-transform: uppercase; }
-.post-card-body { flex: 1; min-width: 0; padding: 18px 20px 20px; display: flex; flex-direction: column; }
-.post-card-body .excerpt { margin-top: auto; }
+.post-card-body { flex: 1; min-width: 0; padding: 18px 20px 18px; display: flex; flex-direction: column; }
+.post-card-body .excerpt { margin-bottom: 14px; }
 .category-tag {
     display: inline-block; background: rgba(3,177,252,0.10); color: var(--hdr);
     font-size: 10px; padding: 3px 10px; border-radius: 999px; margin-bottom: 10px;
@@ -481,6 +656,14 @@ a.post-link:hover h2, a.post-link:hover .feat-title { color: var(--tq); }
 }
 .post-card h2 { font-size: 19px; margin: 0 0 8px; }
 .post-card .meta { margin-bottom: 12px; font-size: 11.5px; }
+.card-foot {
+    margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line-soft);
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+}
+.card-foot .meta { margin: 0; }
+.bm-ico { color: var(--muted); display: inline-flex; }
+.bm-ico svg { width: 15px; height: 15px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.post-card:hover .bm-ico { color: var(--xrp); }
 
 /* ── ARTICLE ────────────────────────────────────────────────── */
 .article-head { margin-bottom: 26px; }
@@ -535,32 +718,65 @@ th { color: var(--hdr); font-family: var(--mn); font-size: 11px; text-transform:
 .flash { background: rgba(3,177,252,0.12); color: var(--hdr); padding: 9px 14px; border-radius: 6px; margin-bottom: 14px; font-size: 13px; border: 1px solid rgba(3,177,252,0.3); }
 .hint { color: var(--muted); font-size: 12px; margin-top: -6px; margin-bottom: 12px; }
 
+/* ── TRUST STRIP ────────────────────────────────────────────── */
+section.trust-strip {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin: 14px 24px 28px;
+    background: var(--panel);
+    border: 1px solid var(--line-soft);
+    border-radius: 16px;
+    overflow: hidden;
+}
+.trust-item {
+    display: flex; flex-direction: column; gap: 10px;
+    padding: 26px 26px 28px;
+    border-right: 1px solid var(--line-soft);
+}
+.trust-item:last-child { border-right: none; }
+.trust-ico {
+    width: 42px; height: 42px; border-radius: 11px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(0,140,255,0.10); border: 1px solid rgba(0,140,255,0.35);
+}
+.trust-ico svg { width: 20px; height: 20px; stroke: var(--xrp); fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.trust-head { color: #fff; font-size: 12.5px; font-weight: bold; letter-spacing: 1.8px; text-transform: uppercase; font-family: Calibri, sans-serif; }
+.trust-copy { color: var(--muted); font-size: 13.5px; line-height: 1.6; }
+@media (max-width: 1000px) { section.trust-strip { grid-template-columns: 1fr 1fr; } .trust-item:nth-child(2) { border-right: none; } .trust-item:nth-child(-n+2) { border-bottom: 1px solid var(--line-soft); } }
+@media (max-width: 560px) { section.trust-strip { grid-template-columns: 1fr; } .trust-item { border-right: none; border-bottom: 1px solid var(--line-soft); } .trust-item:last-child { border-bottom: none; } }
+
 /* ── FOOTER ─────────────────────────────────────────────────── */
 footer.site-footer {
     display: flex;
     flex-direction: column;
     gap: 0;
     border-top: 1px solid transparent;
-    border-image: linear-gradient(90deg, var(--hdr), var(--tq) 55%, transparent) 1;
+    border-image: linear-gradient(90deg, var(--xrp), var(--tq) 55%, transparent) 1;
     padding: 0;
     color: var(--muted);
     font-size: 12px;
 }
 .foot-deck {
     display: flex; align-items: center; justify-content: space-between; gap: 16px;
-    padding: 16px 28px;
+    padding: 20px 28px;
 }
 .foot-deck.legal {
     border-top: 1px solid var(--line-soft);
     font-family: var(--mn); font-size: 11px; letter-spacing: 0.4px;
     background: var(--panel);
 }
-.foot-brand { color: var(--text); font-weight: bold; font-style: italic; font-size: 14px; }
+.foot-id { display: flex; align-items: center; gap: 12px; }
+.foot-id img { height: 34px; width: auto; display: block; mix-blend-mode: screen; border-radius: 6px; }
+.foot-id-col { display: flex; flex-direction: column; line-height: 1.15; }
+.foot-brand { color: var(--text); font-weight: bold; font-size: 14px; letter-spacing: 0.5px; font-style: normal; }
+.foot-brand .nb-lite { color: var(--xrp); }
+.foot-sub { color: var(--muted); font-family: var(--mn); font-size: 8px; letter-spacing: 2.6px; text-transform: uppercase; margin-top: 2px; }
 .foot-tag { color: var(--hdr); font-size: 12.5px; }
-.foot-links { font-family: var(--mn); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; }
-.foot-links a { color: var(--hdr); text-decoration: none; }
-.foot-links a:hover { color: var(--tq); }
-@media (max-width: 700px) { .foot-deck { flex-direction: column; align-items: flex-start; gap: 8px; } }
+.foot-links { font-family: var(--mn); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+.foot-links a { color: var(--muted); text-decoration: none; transition: color 0.15s ease; }
+.foot-links a:hover { color: var(--xrp); }
+@media (max-width: 700px) { .foot-deck { flex-direction: column; align-items: flex-start; gap: 10px; } }
 #debug-panel {
     display: none;
     background: var(--card);
@@ -574,12 +790,16 @@ footer.site-footer {
 }
 #debug-panel div { margin-bottom: 4px; }
 
+@media (max-width: 980px) {
+    header.site-header { flex-direction: column; align-items: stretch; min-height: 0; padding: 34px 24px; }
+    .hdr-right { align-self: flex-start; margin-top: 8px; }
+    .hero-title { font-size: 36px; }
+    .mast-bg img { object-position: 74% 40%; }
+}
 @media (max-width: 900px) {
     .layout { flex-direction: column; }
-    aside.sidebar, main.content { width: 100%; }
-    header.site-header { flex-wrap: wrap; min-height: 0; }
-    .hdr-right { align-self: flex-start; }
-    .brand-title { font-size: 26px; }
+    aside.sidebar, main.content { width: 100%; order: 0; }
+    aside.sidebar { border-left: none; border-top: 1px solid var(--line-soft); }
 }
 @media (prefers-reduced-motion: reduce) {
     *:not(.live-dot) { animation: none !important; transition: none !important; }
@@ -10711,6 +10931,28 @@ ASTRONAUT_IMAGE_B64 = (
 )
 
 FOOTER_BLOCK = """
+<section class="trust-strip" id="about">
+  <div class="trust-item">
+    <div class="trust-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2"/></svg></div>
+    <div class="trust-head">Unmatched Coverage</div>
+    <div class="trust-copy">""" + GLOBAL_SOURCES + """ global sources monitored 24/7 across news, social, filings, and on-chain data.</div>
+  </div>
+  <div class="trust-item">
+    <div class="trust-ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2a7 7 0 0 1 7 7c0 3-2 4-2 6H7c0-2-2-3-2-6a7 7 0 0 1 7-7z"/><path d="M9 19h6M10 22h4"/></svg></div>
+    <div class="trust-head">AI-Powered Intelligence</div>
+    <div class="trust-copy">Proprietary AI analyzes millions of data points to deliver actionable insights first.</div>
+  </div>
+  <div class="trust-item">
+    <div class="trust-ico"><svg viewBox="0 0 24 24"><path d="M12 2l8 4v6c0 5-3.5 8.5-8 10-4.5-1.5-8-5-8-10V6z"/><path d="M8.5 12l2.5 2.5 4.5-4.5"/></svg></div>
+    <div class="trust-head">Trusted &amp; Independent</div>
+    <div class="trust-copy">No hype. No bias. Just facts, data, and the pursuit of truth about XRP.</div>
+  </div>
+  <div class="trust-item">
+    <div class="trust-ico"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.5 2.5-6 6-6s6 2.5 6 6"/><circle cx="17" cy="9" r="2.4"/><path d="M15.5 14.2c3.2 0 5.5 2.2 5.5 5.8"/></svg></div>
+    <div class="trust-head">Built for the Community</div>
+    <div class="trust-copy">By the community, for the community. Empowering XRP holders worldwide.</div>
+  </div>
+</section>
 <div id="debug-panel">
   <div>App Version: {{ version }}</div>
   <div>Last Updated: {{ last_updated_date }} \u2022 {{ last_updated_time }}</div>
@@ -10721,8 +10963,19 @@ FOOTER_BLOCK = """
 </div>
 <footer class="site-footer">
   <div class="foot-deck">
-    <span><span class="foot-brand">XRP Complete Blog</span> &nbsp;<span class="foot-tag">The <em>NEW</em> XRP Intelligence Standard BLOG</span></span>
-    <span class="foot-links"><a href="https://www.xrpcomplete.com" target="_blank" rel="noopener">XRPCOMPLETE.COM</a> &bull; Not Financial Advice</span>
+    <span class="foot-id">
+      <img src="/static/helix.jpg?v={{ version }}" alt="XRP Complete">
+      <span class="foot-id-col">
+        <span class="foot-brand">XRP <span class="nb-lite">COMPLETE</span></span>
+        <span class="foot-sub">Intelligence Network</span>
+      </span>
+    </span>
+    <span class="foot-links">
+      <a href="#about">About</a>
+      <a href="https://www.xrpcomplete.com" target="_blank" rel="noopener">XRPCOMPLETE.COM</a>
+      <a href="https://www.xrpcomplete.com" target="_blank" rel="noopener">Contact</a>
+      <span style="color:#E0447C;">Not Financial Advice</span>
+    </span>
   </div>
   <div class="foot-deck legal">
     <span>\u00a9\ufe0f Copyright 2026 XRP Complete / Red Rio Ventures, LLC. All rights reserved globally. &middot; Visitors: {{ visitor_count }}</span>
@@ -10735,21 +10988,60 @@ FOOTER_BLOCK = """
 """
 
 HEADER_BLOCK = '''
+<nav class="top-nav">
+  <a class="nav-brand" href="/">
+    <img src="/static/helix.jpg?v={{ version }}" alt="XRP Complete">
+    <span class="nav-brand-col">
+      <span class="nav-brand-name">XRP <span class="nb-lite">COMPLETE</span></span>
+      <span class="nav-brand-sub">Intelligence Network</span>
+    </span>
+  </a>
+  <div class="nav-links">
+    <a class="nl-active" href="/">Home</a>
+    <a href="/#briefings">Briefings</a>
+    <a href="/category/News">News</a>
+    <a href="https://www.xrpcomplete.com" target="_blank" rel="noopener">XRP Insights</a>
+    <a href="/category/Regulation">Regulation</a>
+    <a href="/category/Institutional">Institutional</a>
+    <a href="#about">About</a>
+  </div>
+  <a class="nav-search" href="/search" aria-label="Search briefings">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.8-3.8"/></svg>
+  </a>
+</nav>
 <div class="intel-strip">
-  <span class="is-brand">XRP Complete Intelligence Network</span>
-  <span class="is-domains">XRPCOMPLETE.COM <span class="is-dot">&bull;</span> XRPCOMPLETEBLOG.COM</span>
+  <span class="is-brand"><span class="is-src-dot"></span>''' + GLOBAL_SOURCES + ''' Global Sources Monitored</span>
+  <span class="is-domains">XRPCOMPLETE.COM <span class="is-dot">&#124;</span> XRPCOMPLETEBLOG.COM</span>
   <span class="is-advisory">Not Financial Advice</span>
 </div>
 <header class="site-header">
   <div class="mast-bg"><img src="data:image/jpeg;base64,''' + ASTRONAUT_IMAGE_B64 + '''" alt=""></div>
   <div class="mast-scrim"></div>
   <div class="hdr-left-block">
-    <div class="brand-row">
-      <div class="sat-icon"><img src="/static/helix.jpg?v={{ version }}" alt="XRP Complete"></div>
-      <div class="brand-col">
-        <span class="brand-title">XRP Complete <span class="blog-word">Blog</span></span>
-        <div class="brand-tagline">The <em>NEW</em> XRP Intelligence Standard BLOG</div>
-      </div>
+    <div class="hero-eyebrow">XRP Complete Blog</div>
+    <h1 class="hero-title">The <em>NEW</em> XRP<br>Intelligence Standard</h1>
+    <p class="hero-sub">Real-time intelligence, deep analysis, and institutional insights on the XRP Ledger and the future of finance.</p>
+    <div class="hero-feats">
+      <span class="hf-item">
+        <span class="hf-icon"><svg viewBox="0 0 24 24"><path d="M4.5 17a9 9 0 1 1 15 0"/><path d="M12 13l3.5-4.5"/><circle cx="12" cy="13.5" r="1.6"/></svg></span>
+        <span class="hf-label">Real-Time Intelligence</span>
+      </span>
+      <span class="hf-item">
+        <span class="hf-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-5 9 5"/><path d="M5 9v8M9.5 9v8M14.5 9v8M19 9v8"/><path d="M3 17h18M3 20h18"/></svg></span>
+        <span class="hf-label">Regulatory Monitor</span>
+      </span>
+      <span class="hf-item">
+        <span class="hf-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 2.6 2.8 15.4 0 18M12 3c-2.8 2.6-2.8 15.4 0 18"/></svg></span>
+        <span class="hf-label">Institutional Adoption</span>
+      </span>
+      <span class="hf-item">
+        <span class="hf-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="5" r="2.2"/><circle cx="5" cy="18" r="2.2"/><circle cx="19" cy="18" r="2.2"/><path d="M10.8 6.8L6.2 16.2M13.2 6.8l4.6 9.4M7.2 18h9.6"/></svg></span>
+        <span class="hf-label">XRPL Ecosystem</span>
+      </span>
+    </div>
+    <div class="cta-row">
+      <a class="cta-primary" href="#briefings">Latest Briefing &rarr;</a>
+      <a class="visit-btn" href="https://www.xrpcomplete.com" target="_blank" rel="noopener">Visit Main Site &#8599;</a>
     </div>
   </div>
   <div class="hdr-right">
@@ -10759,15 +11051,91 @@ HEADER_BLOCK = '''
     <div class="console-row"><span class="ck">Build</span><span class="cv">{{ version }}</span></div>
     <div class="console-row"><span class="ck">Updated</span><span class="cv">{{ last_updated_date }}</span></div>
     <div class="console-row"><span class="ck">&nbsp;</span><span class="cv">{{ last_updated_time }}</span></div>
-    <a class="visit-btn" href="https://www.xrpcomplete.com" target="_blank" rel="noopener">WEBSITE</a>
+    <div class="next-brief">
+      <span class="nb-label"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Next Briefing</span>
+      <div class="nb-cells">
+        <span class="nb-cell"><span class="nb-num" id="nb-h">--</span><span class="nb-unit">Hrs</span></span>
+        <span class="nb-cell"><span class="nb-num" id="nb-m">--</span><span class="nb-unit">Min</span></span>
+        <span class="nb-cell"><span class="nb-num" id="nb-s">--</span><span class="nb-unit">Sec</span></span>
+      </div>
+    </div>
+    <a class="about-btn" href="#about">About This Blog &rarr;</a>
   </div>
 </header>
+<script>
+(function () {
+  var slots = ''' + str(BRIEF_SLOTS_UTC) + ''';
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function tick() {
+    var now = new Date();
+    var target = null;
+    for (var i = 0; i < slots.length; i++) {
+      var t = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), slots[i], 0, 0));
+      if (t.getTime() > now.getTime()) { target = t; break; }
+    }
+    if (!target) {
+      target = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1, slots[0], 0, 0));
+    }
+    var d = Math.max(0, Math.floor((target.getTime() - now.getTime()) / 1000));
+    var eh = document.getElementById("nb-h"), em = document.getElementById("nb-m"), es = document.getElementById("nb-s");
+    if (eh) {
+      eh.textContent = pad(Math.floor(d / 3600));
+      em.textContent = pad(Math.floor((d % 3600) / 60));
+      es.textContent = pad(d % 60);
+    }
+  }
+  tick();
+  setInterval(tick, 1000);
+})();
+</script>
 '''
+
+
+def _network_status_rows():
+    rows = []
+    for label, value in NETWORK_STATUS:
+        rows.append(
+            '<div class="net-row"><span class="net-dot"></span>'
+            '<span class="net-key">' + label + '</span>'
+            '<span class="net-val">' + value + "</span></div>"
+        )
+    return "".join(rows)
 
 
 def sidebar_html():
     return """
 <aside class="sidebar">
+  <div class="sb-panel">
+    <div class="sb-block">
+      <div class="sb-title">Popular Topics</div>
+      <ul class="sb-list">
+        {% for c in categories %}
+        <li>
+          <span class="topic-ico"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 17c3-4 6 2 9-2s5-6 7-7"/></svg></span>
+          <a href="{{ url_for('by_category', category=c['category']) }}">{{ c['category'] }}</a>
+          <span class="count-pill">{{ c['n'] }}</span>
+        </li>
+        {% else %}
+        <li class="sb-cat-count">No topics yet.</li>
+        {% endfor %}
+      </ul>
+      <a class="sb-view-all" href="{{ url_for('index') }}">View All Topics &rarr;</a>
+    </div>
+  </div>
+  <div class="sb-panel">
+    <div class="sb-block">
+      <div class="sb-title">Stay Informed</div>
+      <p class="sb-sub-copy">Get the latest XRP intelligence delivered to your inbox.</p>
+      <form class="sub-form" method="post" action="{{ url_for('subscribe') }}">
+        <input type="email" name="email" placeholder="Enter your email" required>
+        <button class="sub-btn" type="submit">Subscribe</button>
+      </form>
+      {% if request.args.get('subscribed') %}
+      <div class="sub-ok">&#10003; You're subscribed &mdash; thank you!</div>
+      {% endif %}
+      <div class="sub-privacy"><svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>We respect your privacy.</div>
+    </div>
+  </div>
   <div class="sb-panel sb-net">
     <a href="https://www.xrpcomplete.com" target="_blank" rel="noopener"
        style="display:block;width:100%;aspect-ratio:1/1;overflow:hidden;">
@@ -10777,15 +11145,14 @@ def sidebar_html():
   </div>
   <div class="sb-panel">
     <div class="sb-block">
-      <div class="sb-title">Search</div>
-      <form class="search-form" method="get" action="{{ url_for('search') }}">
-        <input type="text" name="q" placeholder="Search briefings..." value="{{ query|default('') }}">
-      </form>
+      <div class="sb-title">Network Status</div>
+""" + _network_status_rows() + """
+      <a class="sb-view-all" href="https://www.xrpcomplete.com" target="_blank" rel="noopener">View Full Dashboard &rarr;</a>
     </div>
   </div>
   <div class="sb-panel">
     <div class="sb-block">
-      <div class="sb-title">Recent Posts</div>
+      <div class="sb-title">Recent Briefings</div>
       <ul class="sb-list">
         {% for rp in recent_posts %}
         <li><span class="sb-idx">{{ "%02d"|format(loop.index) }}</span><a href="{{ url_for('show_post', slug=rp['slug']) }}">{{ rp['title'] }}</a></li>
@@ -10797,14 +11164,10 @@ def sidebar_html():
   </div>
   <div class="sb-panel">
     <div class="sb-block">
-      <div class="sb-title">Categories</div>
-      <ul class="sb-list">
-        {% for c in categories %}
-        <li><a href="{{ url_for('by_category', category=c['category']) }}">{{ c['category'] }}</a> <span class="sb-cat-count">{{ c['n'] }}</span></li>
-        {% else %}
-        <li class="sb-cat-count">No categories yet.</li>
-        {% endfor %}
-      </ul>
+      <div class="sb-title">Search</div>
+      <form class="search-form" method="get" action="{{ url_for('search') }}">
+        <input type="text" name="q" placeholder="Search briefings..." value="{{ query|default('') }}">
+      </form>
     </div>
   </div>
 </aside>
@@ -10816,7 +11179,7 @@ def sidebar_context(db):
         "SELECT * FROM posts WHERE published = 1 ORDER BY id DESC LIMIT 5"
     ).fetchall()
     categories = db.execute(
-        "SELECT category, COUNT(*) as n FROM posts WHERE published = 1 GROUP BY category ORDER BY category"
+        "SELECT category, COUNT(*) as n FROM posts WHERE published = 1 GROUP BY category ORDER BY n DESC, category"
     ).fetchall()
     return recent_posts, categories
 
@@ -10825,6 +11188,9 @@ def attach_thumbnails(db, posts):
     """Convert post rows to dicts and attach each post's first uploaded image
     (by lowest image id) as 'thumb', or None if the post has no images."""
     posts = [dict(p) for p in posts]
+    for p in posts:
+        words = len((p.get("content") or "").split())
+        p["read_min"] = max(1, round(words / 200))
     ids = [p["id"] for p in posts]
     if not ids:
         return posts
@@ -10841,204 +11207,77 @@ def attach_thumbnails(db, posts):
     return posts
 
 
-
-
-HOME_CSS = """
-/* ── HOMEPAGE V2 — EDITORIAL PUBLICATION ───────────────────── */
-.home-layout { display:grid; grid-template-columns:minmax(0,1fr) 300px; gap:28px; padding:34px 32px 56px; }
-.home-main { min-width:0; }
-.home-rail { min-width:0; }
-.home-intro { display:flex; align-items:end; justify-content:space-between; gap:24px; margin-bottom:22px; }
-.home-intro-copy { max-width:760px; }
-.home-intro h1 { font-size:clamp(34px,4vw,54px); line-height:1.02; letter-spacing:-1.6px; margin-bottom:12px; }
-.home-intro h1::after { width:94px; }
-.home-deck { margin:0; color:#aeb8ca; font-size:16px; line-height:1.65; max-width:720px; }
-.home-index { display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end; }
-.home-index a { color:#aeb8ca; text-decoration:none; font-family:var(--mn); font-size:10px; letter-spacing:1.25px; text-transform:uppercase; padding:7px 10px; border:1px solid var(--line); border-radius:999px; background:rgba(255,255,255,.018); }
-.home-index a:hover { color:#fff; border-color:rgba(3,177,252,.65); background:rgba(3,177,252,.09); }
-
-.home-feature { position:relative; display:grid; grid-template-columns:minmax(0,1.25fr) minmax(330px,.75fr); min-height:460px; overflow:hidden; border:1px solid #22304a; border-radius:18px; background:#080c13; box-shadow:0 25px 70px rgba(0,0,0,.45); margin-bottom:34px; }
-.home-feature::after { content:""; position:absolute; inset:0; pointer-events:none; border-radius:inherit; box-shadow:inset 0 1px 0 rgba(255,255,255,.045); }
-.home-feature-media { position:relative; overflow:hidden; min-height:460px; background:linear-gradient(135deg,#111827,#05070b); }
-.home-feature-media img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .7s cubic-bezier(.2,.7,.2,1); }
-.home-feature:hover .home-feature-media img { transform:scale(1.035); }
-.home-feature-media::after { content:""; position:absolute; inset:0; background:linear-gradient(90deg,transparent 55%,rgba(8,12,19,.75) 100%),linear-gradient(0deg,rgba(0,0,0,.28),transparent 50%); }
-.home-feature-empty { height:100%; min-height:460px; display:grid; place-items:center; font-family:var(--mn); color:var(--muted); letter-spacing:2px; text-transform:uppercase; }
-.home-feature-copy { display:flex; flex-direction:column; justify-content:center; padding:42px 38px; position:relative; z-index:2; }
-.home-kicker { display:flex; align-items:center; gap:10px; color:var(--tq); font-family:var(--mn); text-transform:uppercase; letter-spacing:2.4px; font-size:10px; margin-bottom:17px; }
-.home-kicker::before { content:""; width:30px; height:2px; background:linear-gradient(90deg,var(--hdr),var(--tq)); }
-.home-feature-title { color:#fff; font-size:clamp(28px,3vw,43px); line-height:1.08; letter-spacing:-.8px; margin:10px 0 13px; }
-.home-feature-excerpt { color:#aeb8ca; font-size:16px; line-height:1.72; margin:0 0 24px; display:-webkit-box; -webkit-line-clamp:5; -webkit-box-orient:vertical; overflow:hidden; }
-.home-feature-meta { color:#7f8aa0; font-family:var(--mn); font-size:10.5px; letter-spacing:1px; text-transform:uppercase; margin-bottom:3px; }
-.home-read { display:inline-flex; align-items:center; gap:10px; align-self:flex-start; color:#06111c; background:linear-gradient(90deg,var(--hdr),#39c5ff); text-decoration:none; font-weight:800; font-size:12px; letter-spacing:1.2px; text-transform:uppercase; padding:11px 15px; border-radius:8px; box-shadow:0 8px 24px rgba(3,177,252,.18); }
-.home-read:hover { box-shadow:0 10px 30px rgba(3,177,252,.34); transform:translateY(-1px); }
-
-.home-section-head { display:flex; align-items:center; justify-content:space-between; gap:20px; margin:0 0 17px; padding-bottom:13px; border-bottom:1px solid var(--line); }
-.home-section-head h2 { font-size:22px; margin:0; color:#fff; }
-.home-section-head span { color:var(--muted); font-family:var(--mn); font-size:10px; letter-spacing:1.5px; text-transform:uppercase; }
-.home-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:20px; }
-.home-card { position:relative; display:flex; flex-direction:column; min-height:100%; overflow:hidden; border:1px solid #1b273b; border-radius:14px; background:linear-gradient(180deg,#0d131e 0%,#080c13 100%); transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease; }
-.home-card:hover { transform:translateY(-4px); border-color:rgba(3,177,252,.5); box-shadow:0 18px 45px rgba(0,0,0,.42); }
-.home-card-media { position:relative; aspect-ratio:16/9; overflow:hidden; background:#05070b; border-bottom:1px solid var(--line-soft); }
-.home-card-media img { width:100%; height:100%; object-fit:cover; display:block; transition:transform .55s ease; }
-.home-card:hover .home-card-media img { transform:scale(1.045); }
-.home-card-empty { height:100%; display:grid; place-items:center; color:var(--muted); font-family:var(--mn); font-size:10px; letter-spacing:2px; text-transform:uppercase; }
-.home-card-body { padding:19px 20px 21px; display:flex; flex-direction:column; flex:1; }
-.home-card h3 { color:#fff; font-size:21px; line-height:1.22; margin:7px 0 9px; letter-spacing:-.2px; }
-.home-card a { text-decoration:none; }
-.home-card a:hover h3 { color:var(--tq); }
-.home-card .excerpt { font-size:14.5px; line-height:1.62; -webkit-line-clamp:3; margin-bottom:16px; }
-.home-card-foot { display:flex; align-items:center; justify-content:space-between; gap:14px; margin-top:auto; padding-top:14px; border-top:1px solid var(--line-soft); color:#7f8aa0; font-family:var(--mn); font-size:9.5px; letter-spacing:.8px; text-transform:uppercase; }
-.home-card-arrow { color:var(--hdr); font-size:15px; }
-
-.rail-panel { border:1px solid #1b273b; border-radius:14px; background:linear-gradient(180deg,rgba(15,21,35,.95),rgba(7,10,16,.95)); padding:18px; margin-bottom:18px; }
-.rail-title { display:flex; align-items:center; justify-content:space-between; gap:12px; color:#fff; font-size:12px; font-family:var(--mn); letter-spacing:1.7px; text-transform:uppercase; margin-bottom:14px; padding-bottom:11px; border-bottom:1px solid var(--line-soft); }
-.rail-title i { width:7px; height:7px; border-radius:50%; background:var(--tq); box-shadow:0 0 12px rgba(0,229,204,.7); }
-.rail-search input { margin:0; }
-.rail-list { list-style:none; padding:0; margin:0; }
-.rail-list li { display:grid; grid-template-columns:28px minmax(0,1fr); gap:9px; padding:11px 0; border-bottom:1px solid var(--line-soft); }
-.rail-list li:last-child { border-bottom:0; padding-bottom:0; }
-.rail-list li:first-child { padding-top:0; }
-.rail-num { color:var(--hdr); font-family:var(--mn); font-size:10px; letter-spacing:1px; padding-top:2px; }
-.rail-list a { color:#dce4ef; text-decoration:none; font-size:13.5px; line-height:1.35; }
-.rail-list a:hover { color:var(--tq); }
-.rail-categories { display:flex; flex-wrap:wrap; gap:8px; }
-.rail-categories a { color:#aeb8ca; text-decoration:none; font-size:11px; padding:6px 9px; border-radius:999px; border:1px solid var(--line); background:rgba(255,255,255,.018); }
-.rail-categories a:hover { color:#fff; border-color:var(--hdr); }
-.rail-brand { padding:0; overflow:hidden; }
-.rail-brand img { width:100%; aspect-ratio:1/1; object-fit:cover; display:block; }
-.empty-state { border:1px dashed var(--line); border-radius:14px; padding:42px; text-align:center; color:var(--muted); }
-
-@media (max-width:1100px) {
-  .home-layout { grid-template-columns:1fr; }
-  .home-rail { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:18px; }
-  .rail-panel { margin-bottom:0; }
-  .rail-brand { display:none; }
-}
-@media (max-width:820px) {
-  .home-layout { padding:26px 18px 44px; }
-  .home-intro { align-items:flex-start; flex-direction:column; }
-  .home-index { justify-content:flex-start; }
-  .home-feature { grid-template-columns:1fr; min-height:0; }
-  .home-feature-media,.home-feature-empty { min-height:280px; }
-  .home-feature-copy { padding:28px 24px 30px; }
-  .home-grid { grid-template-columns:1fr; }
-}
-@media (max-width:600px) {
-  .home-intro h1 { font-size:36px; }
-  .home-deck { font-size:15px; }
-  .home-index { display:none; }
-  .home-feature-media,.home-feature-empty { min-height:220px; }
-  .home-feature-title { font-size:29px; }
-  .home-feature-excerpt { font-size:15px; -webkit-line-clamp:4; }
-  .home-rail { grid-template-columns:1fr; }
-  .home-card h3 { font-size:20px; }
-}
-"""
-
 # ----------------------------------------------------------------------
 # PUBLIC TEMPLATES
 # ----------------------------------------------------------------------
 
 INDEX_TEMPLATE = """
 <!DOCTYPE html>
-<html lang="en"><head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Independent XRP intelligence briefings, analysis, and long-form research from XRP Complete Blog.">
-<title>XRP Complete Blog — Intelligence Briefings</title>
-<style>""" + BASE_CSS + HOME_CSS + """</style></head><body>
-<a href="#briefings" style="position:absolute;left:-9999px;top:auto;">Skip to briefings</a>
+<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>XRP Complete Blog</title><style>""" + BASE_CSS + """</style></head><body>
 <div class="shell">
 """ + HEADER_BLOCK + """
-<div class="home-layout">
-  <main class="home-main" id="briefings">
-    <section class="home-intro" aria-labelledby="home-title">
-      <div class="home-intro-copy">
-        <div class="page-eyebrow">Independent Editorial Intelligence</div>
-        <h1 id="home-title">{{ heading }}</h1>
-        <p class="home-deck">Focused analysis of XRP, Ripple, the XRP Ledger, regulation, institutional adoption, and the infrastructure shaping the next financial system.</p>
-      </div>
-      {% if categories %}
-      <nav class="home-index" aria-label="Briefing categories">
-        {% for c in categories[:5] %}<a href="{{ url_for('by_category', category=c['category']) }}">{{ c['category'] }}</a>{% endfor %}
-      </nav>
-      {% endif %}
-    </section>
-
+<div class="layout">
+""" + sidebar_html() + """
+  <main class="content" id="briefings">
+    {% if featured_layout|default(false) %}
+    <div class="section-head">
+      <span class="section-title">Latest Intelligence Briefings</span>
+      <a class="section-link" href="{{ url_for('index') }}#briefings">View All Briefings &rarr;</a>
+    </div>
+    {% else %}
+    <div class="page-eyebrow">Intelligence Briefings</div>
+    <h1>{{ heading }}</h1>
+    {% if subheading %}<p class="meta">{{ subheading }}</p>{% endif %}
+    {% endif %}
     {% if posts %}
       {% if featured_layout|default(false) %}
       {% set featured = posts[0] %}
-      <article class="home-feature">
-        <a class="home-feature-media" href="{{ url_for('show_post', slug=featured['slug']) }}" aria-label="Read {{ featured['title'] }}">
-          {% if featured['thumb'] %}<img src="{{ url_for('uploaded_file', filename=featured['thumb']) }}" alt="" fetchpriority="high">
-          {% else %}<div class="home-feature-empty">Featured briefing</div>{% endif %}
-        </a>
-        <div class="home-feature-copy">
-          <div class="home-kicker">Lead Briefing</div>
-          <div class="category-tag">{{ featured['category'] }}</div>
-          <a class="post-link" href="{{ url_for('show_post', slug=featured['slug']) }}"><h2 class="home-feature-title">{{ featured['title'] }}</h2></a>
-          <div class="home-feature-meta">Published {{ featured['created_at'] }}</div>
-          {% if featured['excerpt'] %}<p class="home-feature-excerpt">{{ featured['excerpt'] }}</p>{% endif %}
-          <a class="home-read" href="{{ url_for('show_post', slug=featured['slug']) }}">Read briefing <span aria-hidden="true">→</span></a>
+      <a class="post-link" href="{{ url_for('show_post', slug=featured['slug']) }}">
+        <div class="feat-card">
+          {% if featured['thumb'] %}
+          <div class="feat-media"><img src="{{ url_for('uploaded_file', filename=featured['thumb']) }}" alt=""></div>
+          {% else %}
+          <div class="feat-media empty">No image</div>
+          {% endif %}
+          <div class="feat-body">
+            <div class="feat-eyebrow">Featured</div>
+            <div class="category-tag">{{ featured['category'] }}</div>
+            <div class="feat-title">{{ featured['title'] }}</div>
+            <div class="feat-excerpt">{{ featured['excerpt'] }}</div>
+            <div class="feat-meta">{{ featured['created_at'] }} &middot; {{ featured['read_min'] }} min read</div>
+            <div class="feat-read">Read Briefing &rarr;</div>
+          </div>
         </div>
-      </article>
+      </a>
       {% endif %}
-
       {% set grid_posts = posts[1:] if featured_layout|default(false) else posts %}
       {% if grid_posts %}
-      <div class="home-section-head">
-        <h2>{% if featured_layout|default(false) %}Latest Intelligence{% else %}Briefings{% endif %}</h2>
-        <span>{{ grid_posts|length }} report{% if grid_posts|length != 1 %}s{% endif %}</span>
-      </div>
-      <section class="home-grid" aria-label="Latest intelligence briefings">
+      <div class="brief-grid">
         {% for p in grid_posts %}
-        <article class="home-card">
-          <a class="home-card-media" href="{{ url_for('show_post', slug=p['slug']) }}" aria-label="Read {{ p['title'] }}">
-            {% if p['thumb'] %}<img src="{{ url_for('uploaded_file', filename=p['thumb']) }}" alt="" loading="lazy">
-            {% else %}<div class="home-card-empty">Intelligence briefing</div>{% endif %}
-          </a>
-          <div class="home-card-body">
+        <div class="post-card">
+          {% if p['thumb'] %}
+          <div class="post-thumb"><img src="{{ url_for('uploaded_file', filename=p['thumb']) }}" alt=""></div>
+          {% else %}
+          <div class="post-thumb empty">No image</div>
+          {% endif %}
+          <div class="post-card-body">
             <div class="category-tag">{{ p['category'] }}</div>
-            <a href="{{ url_for('show_post', slug=p['slug']) }}"><h3>{{ p['title'] }}</h3></a>
-            {% if p['excerpt'] %}<div class="excerpt">{{ p['excerpt'] }}</div>{% endif %}
-            <div class="home-card-foot"><span>{{ p['created_at'] }}</span><span class="home-card-arrow" aria-hidden="true">→</span></div>
+            <a class="post-link" href="{{ url_for('show_post', slug=p['slug']) }}"><h2>{{ p['title'] }}</h2></a>
+            <div class="excerpt">{{ p['excerpt'] }}</div>
+            <div class="card-foot">
+              <div class="meta">{{ p['created_at'] }} &middot; {{ p['read_min'] }} min read</div>
+              <span class="bm-ico"><svg viewBox="0 0 24 24"><path d="M7 3h10a1 1 0 0 1 1 1v17l-6-4-6 4V4a1 1 0 0 1 1-1z"/></svg></span>
+            </div>
           </div>
-        </article>
+        </div>
         {% endfor %}
-      </section>
+      </div>
       {% endif %}
     {% else %}
-      <div class="empty-state">No published briefings found.</div>
+      <p class="meta">No posts found.</p>
     {% endif %}
   </main>
-
-  <aside class="home-rail" aria-label="Blog tools">
-    <section class="rail-panel rail-brand">
-      <a href="https://www.xrpcomplete.com" target="_blank" rel="noopener"><img src="{{ url_for('sidebar_ad_image') }}" alt="Visit XRP Complete"></a>
-    </section>
-    <section class="rail-panel">
-      <div class="rail-title"><span>Search Briefings</span><i></i></div>
-      <form class="rail-search" method="get" action="{{ url_for('search') }}">
-        <input type="search" name="q" placeholder="Search intelligence..." value="{{ query|default('') }}" aria-label="Search briefings">
-      </form>
-    </section>
-    {% if recent_posts %}
-    <section class="rail-panel">
-      <div class="rail-title"><span>Recent Intelligence</span><i></i></div>
-      <ol class="rail-list">
-        {% for p in recent_posts %}<li><span class="rail-num">{{ '%02d'|format(loop.index) }}</span><a href="{{ url_for('show_post', slug=p['slug']) }}">{{ p['title'] }}</a></li>{% endfor %}
-      </ol>
-    </section>
-    {% endif %}
-    {% if categories %}
-    <section class="rail-panel">
-      <div class="rail-title"><span>Coverage Index</span><i></i></div>
-      <div class="rail-categories">
-        {% for c in categories %}<a href="{{ url_for('by_category', category=c['category']) }}">{{ c['category'] }} · {{ c['count'] }}</a>{% endfor %}
-      </div>
-    </section>
-    {% endif %}
-  </aside>
 </div>
 </div>
 """ + FOOTER_BLOCK + """
@@ -11149,6 +11388,26 @@ ADMIN_TEMPLATE = """
     </tr>
     {% endfor %}
   </table>
+
+  <h2 style="margin-top:40px;">Subscribers ({{ subscribers|length }})</h2>
+  {% if subscribers %}
+  <table>
+    <tr><th>Email</th><th>Subscribed (UTC)</th><th>Actions</th></tr>
+    {% for s in subscribers %}
+    <tr>
+      <td>{{ s['email'] }}</td>
+      <td>{{ s['created_at'] }}</td>
+      <td>
+        <form style="display:inline" method="post" action="{{ url_for('admin_delete_subscriber', sub_id=s['id']) }}" onsubmit="return confirm('Remove this subscriber?');">
+          <button class="btn danger small" type="submit">Remove</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </table>
+  {% else %}
+  <p class="hint" style="margin-top:8px;">No subscribers yet. The Stay Informed panel on the blog collects emails here.</p>
+  {% endif %}
 </div>
 """ + FOOTER_BLOCK + """
 </body></html>
@@ -11282,6 +11541,19 @@ def search():
     )
 
 
+@app.route("/subscribe", methods=["POST"])
+def subscribe():
+    email = (request.form.get("email") or "").strip().lower()
+    if email and re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email) and len(email) <= 254:
+        db = get_db()
+        db.execute(
+            "INSERT OR IGNORE INTO subscribers (email, created_at) VALUES (?, ?)",
+            (email, datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")),
+        )
+        db.commit()
+    return redirect(url_for("index", subscribed=1))
+
+
 @app.route("/post/<slug>")
 def show_post(slug):
     db = get_db()
@@ -11348,8 +11620,9 @@ def admin_logout():
 def admin():
     db = get_db()
     posts = db.execute("SELECT * FROM posts ORDER BY id DESC").fetchall()
+    subscribers = db.execute("SELECT * FROM subscribers ORDER BY id DESC").fetchall()
     flash_msg = request.args.get("msg")
-    return render_template_string(ADMIN_TEMPLATE, posts=posts, flash_msg=flash_msg, **footer_ctx(db))
+    return render_template_string(ADMIN_TEMPLATE, posts=posts, subscribers=subscribers, flash_msg=flash_msg, **footer_ctx(db))
 
 
 @app.route("/admin/post/new", methods=["POST"])
@@ -11450,6 +11723,15 @@ def admin_delete_post(post_id):
     db.execute("DELETE FROM images WHERE post_id = ?", (post_id,))
     db.commit()
     return redirect(url_for("admin", msg="Post deleted."))
+
+
+@app.route("/admin/subscriber/<int:sub_id>/delete", methods=["POST"])
+@login_required
+def admin_delete_subscriber(sub_id):
+    db = get_db()
+    db.execute("DELETE FROM subscribers WHERE id = ?", (sub_id,))
+    db.commit()
+    return redirect(url_for("admin", msg="Subscriber removed."))
 
 
 @app.errorhandler(404)
