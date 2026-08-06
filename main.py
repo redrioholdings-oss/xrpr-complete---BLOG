@@ -25,10 +25,10 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v50"
+APP_VERSION = "v51"
 LAST_UPDATED_DATE = "August 5, 2026"
-LAST_UPDATED_TIME_UTC = "3:00 AM UTC"
-LAST_UPDATED_TIME_CT = "10:00 PM CST"
+LAST_UPDATED_TIME_UTC = "3:15 AM UTC"
+LAST_UPDATED_TIME_CT = "10:15 PM CST"
 
 # v48 display + timing constants -----------------------------------------
 # Shown in the intel strip, trust strip, and Network Status sidebar panel.
@@ -11029,11 +11029,11 @@ HEADER_BLOCK = '''
         <span class="hf-label">Real-Time Intelligence</span>
       </span>
       <span class="hf-item">
-        <span class="hf-icon"><svg viewBox="0 0 24 24"><path d="M3 9l9-5 9 5"/><path d="M5 9v8M9.5 9v8M14.5 9v8M19 9v8"/><path d="M3 17h18M3 20h18"/></svg></span>
+        <span class="hf-icon"><svg viewBox="0 0 24 24"><path d="M12 2v2"/><path d="M8.5 8.5a3.5 3.5 0 0 1 7 0"/><path d="M7.5 8.5h9"/><path d="M5.5 11.5h13"/><path d="M7 11.5v6.5M10.3 11.5v6.5M13.7 11.5v6.5M17 11.5v6.5"/><path d="M4.5 18h15M3.5 21h17"/></svg></span>
         <span class="hf-label">Regulatory Monitor</span>
       </span>
       <span class="hf-item">
-        <span class="hf-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.8 2.6 2.8 15.4 0 18M12 3c-2.8 2.6-2.8 15.4 0 18"/></svg></span>
+        <span class="hf-icon"><svg viewBox="0 0 24 24"><path d="M5 21V8h5.5v13"/><path d="M13.5 21V4H19v13"/><path d="M19 17v4"/><path d="M7 11h1.5M7 14h1.5M7 17h1.5"/><path d="M15.5 7h1.5M15.5 10h1.5M15.5 13h1.5M15.5 16h1.5"/><path d="M3 21h18"/></svg></span>
         <span class="hf-label">Institutional Adoption</span>
       </span>
       <span class="hf-item">
