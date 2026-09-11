@@ -25,7 +25,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v75"
+APP_VERSION = "v76"
 LAST_UPDATED_DATE = "September 11, 2026"
 LAST_UPDATED_TIME_UTC = "7:00 PM UTC"
 LAST_UPDATED_TIME_CT = "2:00 PM CDT"
@@ -401,11 +401,11 @@ header.site-header {
     margin: 0 0 22px; font-family: var(--sans);
 }
 .hero-coverage {
-    font-family: var(--mn); font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase;
-    color: #8fa2bd; margin-bottom: 30px; line-height: 2;
+    font-family: var(--mn); font-size: 10px; letter-spacing: 0.8px; text-transform: uppercase;
+    color: #8fa2bd; margin-bottom: 30px; line-height: 2; white-space: nowrap;
 }
 .hero-coverage span:not(.hc-dot) { white-space: nowrap; }
-.hero-coverage .hc-dot { color: var(--tq); margin: 0 10px; }
+.hero-coverage .hc-dot { color: var(--tq); margin: 0 7px; }
 .cta-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .cta-primary {
     display: inline-flex; align-items: center; gap: 8px;
@@ -438,6 +438,8 @@ header.site-header {
     header.site-header { min-height: 0; padding: 40px 24px; }
     .hero-title { font-size: 32px; }
     .mast-bg img { object-position: 74% 40%; }
+    .hero-coverage { white-space: normal; }
+    .hero-coverage span:not(.hc-dot) { white-space: nowrap; }
 }
 
 /* ── HERO BADGE (full xrpcomplete.com seal, bottom-right of header) ── */
