@@ -25,7 +25,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v70"
+APP_VERSION = "v71"
 LAST_UPDATED_DATE = "September 11, 2026"
 LAST_UPDATED_TIME_UTC = "7:00 PM UTC"
 LAST_UPDATED_TIME_CT = "2:00 PM CDT"
@@ -317,7 +317,7 @@ nav.top-nav {
 .nav-brand img { height: 34px; width: auto; display: block; border-radius: 5px; }
 .nav-brand-col { display: flex; flex-direction: column; line-height: 1.1; }
 .nav-brand-name { color: #fff; font-weight: 700; font-size: 16px; letter-spacing: 0.2px; font-family: var(--sans); }
-.nav-brand-name .nb-lite { color: #fff; font-weight: 600; }
+.nav-brand-name .nb-lite { color: #008CFF; font-weight: 600; }
 .nav-brand-sub { color: #fff; font-family: var(--mn); font-size: 8.5px; letter-spacing: 2.4px; text-transform: uppercase; margin-top: 3px; }
 .nav-links { display: flex; align-items: center; gap: 32px; }
 .nav-links a {
