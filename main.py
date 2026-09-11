@@ -25,7 +25,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v69"
+APP_VERSION = "v70"
 LAST_UPDATED_DATE = "September 11, 2026"
 LAST_UPDATED_TIME_UTC = "7:00 PM UTC"
 LAST_UPDATED_TIME_CT = "2:00 PM CDT"
@@ -15987,7 +15987,7 @@ HEADER_BLOCK = '''
   <div class="mast-scrim"></div>
   <div class="hdr-left-block">
     <div class="hero-eyebrow">XRP Complete Blog</div>
-    <h1 class="hero-title">The <em>NEW</em> XRP Intelligence<br>Standard BLOG</h1>
+    <h1 class="hero-title">The <em>NEW</em> XRP<br>Intelligence Standard BLOG</h1>
     <p class="hero-sub">Real-time intelligence, deep analysis, and institutional insights on the XRP Ledger and the future of finance.</p>
     <div class="hero-coverage">
       <span>Real-Time Intelligence</span><span class="hc-dot">&middot;</span>
