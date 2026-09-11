@@ -25,7 +25,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v73"
+APP_VERSION = "v75"
 LAST_UPDATED_DATE = "September 11, 2026"
 LAST_UPDATED_TIME_UTC = "7:00 PM UTC"
 LAST_UPDATED_TIME_CT = "2:00 PM CDT"
@@ -404,6 +404,7 @@ header.site-header {
     font-family: var(--mn); font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase;
     color: #8fa2bd; margin-bottom: 30px; line-height: 2;
 }
+.hero-coverage span:not(.hc-dot) { white-space: nowrap; }
 .hero-coverage .hc-dot { color: var(--tq); margin: 0 10px; }
 .cta-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .cta-primary {
@@ -15992,7 +15993,7 @@ HEADER_BLOCK = '''
       <span>Real-Time Intelligence</span><span class="hc-dot">&middot;</span>
       <span>Regulatory Monitor</span><span class="hc-dot">&middot;</span>
       <span>Institutional Adoption</span><span class="hc-dot">&middot;</span>
-      <span>XRPL Ecosystem</span>
+      <span>XRPL&nbsp;Ecosystem</span>
     </div>
     <div class="cta-row">
       <a class="cta-primary" href="/#briefings">Latest Briefing &rarr;</a>
