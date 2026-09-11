@@ -25,7 +25,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v63"
+APP_VERSION = "v64"
 LAST_UPDATED_DATE = "September 11, 2026"
 LAST_UPDATED_TIME_UTC = "7:00 PM UTC"
 LAST_UPDATED_TIME_CT = "2:00 PM CDT"
@@ -318,7 +318,7 @@ nav.top-nav {
 .nav-brand-col { display: flex; flex-direction: column; line-height: 1.1; }
 .nav-brand-name { color: #fff; font-weight: 700; font-size: 16px; letter-spacing: 0.2px; font-family: var(--sans); }
 .nav-brand-name .nb-lite { color: var(--hdr); font-weight: 600; }
-.nav-brand-sub { color: var(--muted); font-family: var(--mn); font-size: 8.5px; letter-spacing: 2.4px; text-transform: uppercase; margin-top: 3px; }
+.nav-brand-sub { color: #E0447C; font-family: var(--mn); font-size: 8.5px; letter-spacing: 2.4px; text-transform: uppercase; margin-top: 3px; }
 .nav-links { display: flex; align-items: center; gap: 32px; }
 .nav-links a {
     color: var(--muted); text-decoration: none;
@@ -438,6 +438,26 @@ header.site-header {
     .hero-title { font-size: 30px; }
     .mast-bg img { object-position: 74% 40%; }
 }
+
+/* ── HERO BADGE (xrpcomplete.com logo seal, bottom-right of header) ── */
+.hero-badge {
+    position: absolute;
+    right: 40px;
+    bottom: 32px;
+    z-index: 3;
+    width: 192px;
+    height: 192px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid rgba(255,255,255,0.24);
+    box-shadow: 0 14px 40px rgba(0,0,0,0.55);
+    display: block;
+    transition: transform 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.hero-badge:hover { transform: translateY(-2px) scale(1.02); border-color: var(--hdr); box-shadow: 0 18px 48px rgba(0,0,0,0.6); }
+.hero-badge img { width: 100%; height: 100%; object-fit: cover; display: block; }
+@media (max-width: 980px) { .hero-badge { width: 120px; height: 120px; right: 24px; bottom: 20px; } }
+@media (max-width: 620px) { .hero-badge { width: 84px; height: 84px; right: 16px; bottom: 16px; border-width: 1.5px; } }
 
 /* ── LAYOUT (content left, sidebar right) ───────────────────── */
 .layout { display: flex; min-height: 70vh; }
@@ -781,7 +801,7 @@ footer.site-footer {
 .foot-id-col { display: flex; flex-direction: column; line-height: 1.15; }
 .foot-brand { color: var(--text); font-weight: 700; font-size: 13.5px; letter-spacing: 0.2px; font-family: var(--sans); font-style: normal; }
 .foot-brand .nb-lite { color: var(--hdr); }
-.foot-sub { color: var(--muted); font-family: var(--mn); font-size: 8px; letter-spacing: 2.2px; text-transform: uppercase; margin-top: 2px; }
+.foot-sub { color: #E0447C; font-family: var(--mn); font-size: 8px; letter-spacing: 2.2px; text-transform: uppercase; margin-top: 2px; }
 .foot-tagline { color: #8592A8; font-size: 13px; line-height: 1.6; margin: 0; max-width: 260px; }
 .foot-col-title {
     color: #fff; font-size: 10px; text-transform: uppercase; letter-spacing: 1.8px; font-weight: 600;
@@ -10980,7 +11000,7 @@ FOOTER_BLOCK = """
       <span class="foot-id">
         <img src="/static/helix.jpg?v={{ version }}" alt="XRP Complete">
         <span class="foot-id-col">
-          <span class="foot-brand">XRP <span class="nb-lite">COMPLETE</span></span>
+          <span class="foot-brand">XRP <span class="nb-lite">COMPLETE</span> BLOG</span>
           <span class="foot-sub">Intelligence Network</span>
         </span>
       </span>
@@ -11031,7 +11051,7 @@ HEADER_BLOCK = '''
   <a class="nav-brand" href="/">
     <img src="/static/helix.jpg?v={{ version }}" alt="XRP Complete">
     <span class="nav-brand-col">
-      <span class="nav-brand-name">XRP <span class="nb-lite">COMPLETE</span></span>
+      <span class="nav-brand-name">XRP <span class="nb-lite">COMPLETE</span> BLOG</span>
       <span class="nav-brand-sub">Intelligence Network</span>
     </span>
   </a>
@@ -11066,6 +11086,9 @@ HEADER_BLOCK = '''
       <a class="visit-btn" href="https://xrpcomplete.com" target="_blank" rel="noopener">Visit XRPComplete.com</a>
     </div>
   </div>
+  <a class="hero-badge" href="https://xrpcomplete.com" target="_blank" rel="noopener" aria-label="Visit XRPComplete.com">
+    <img src="/static/helix.jpg?v={{ version }}" alt="XRPComplete.com">
+  </a>
 </header>
 '''
 
