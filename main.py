@@ -25,7 +25,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v67"
+APP_VERSION = "v69"
 LAST_UPDATED_DATE = "September 11, 2026"
 LAST_UPDATED_TIME_UTC = "7:00 PM UTC"
 LAST_UPDATED_TIME_CT = "2:00 PM CDT"
@@ -391,11 +391,11 @@ header.site-header {
     color: #E0447C; margin-bottom: 18px;
 }
 .hero-title {
-    color: #fff; font-size: 44px; font-weight: 600; line-height: 1.1; letter-spacing: -0.3px;
-    margin: 0 0 18px;
-    font-family: var(--serif);
+    color: #fff; font-size: 46px; font-weight: 800; line-height: 1.12; letter-spacing: 0.5px;
+    margin: 0 0 16px;
+    font-family: system-ui, -apple-system, sans-serif;
 }
-.hero-title em { color: var(--hdr); font-style: italic; }
+.hero-title em { color: #008CFF; font-style: italic; }
 .hero-sub {
     color: #b9c2d4; font-size: 17px; line-height: 1.62; max-width: 480px;
     margin: 0 0 22px; font-family: var(--sans);
@@ -435,7 +435,7 @@ header.site-header {
 .visit-btn:hover { border-color: var(--hdr); color: var(--hdr); background: rgba(47,155,255,0.08); }
 @media (max-width: 980px) {
     header.site-header { min-height: 0; padding: 40px 24px; }
-    .hero-title { font-size: 30px; }
+    .hero-title { font-size: 32px; }
     .mast-bg img { object-position: 74% 40%; }
 }
 
