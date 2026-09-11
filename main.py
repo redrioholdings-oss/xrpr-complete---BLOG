@@ -25,13 +25,13 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v62"
+APP_VERSION = "v63"
 LAST_UPDATED_DATE = "September 11, 2026"
 LAST_UPDATED_TIME_UTC = "7:00 PM UTC"
 LAST_UPDATED_TIME_CT = "2:00 PM CDT"
 
 # v48 display + timing constants -----------------------------------------
-# Shown in the intel strip, trust strip, and Network Status sidebar panel.
+# Shown in the utility bar, trust strip, and footer Network Pulse column.
 # Edit the values here to update them everywhere they appear.
 GLOBAL_SOURCES = "306+"
 NETWORK_STATUS = [
@@ -41,6 +41,43 @@ NETWORK_STATUS = [
     ("On-Chain Events (24h)", "12,763"),
 ]
 START_TIME = time.time()
+
+# v63 — editorial category accent system ----------------------------------
+# Each category gets a deliberate accent color pulled from the institutional
+# palette below, so the grid reads with real color variety instead of one
+# blue tint repeated everywhere. Unlisted/custom categories fall back to a
+# stable hash-based pick from the same palette, so they're still consistent
+# across a page rather than random on every render.
+CATEGORY_PALETTE = {
+    "Markets": "#2F9BFF",
+    "Legislation": "#C6952E",
+    "Regulatory": "#C6952E",
+    "Institutional": "#3F8F6E",
+    "Technology": "#6C7BD1",
+    "XRPL": "#6C7BD1",
+    "Community": "#B65C8C",
+    "General": "#8992A6",
+}
+_ACCENT_FALLBACKS = ["#2F9BFF", "#C6952E", "#3F8F6E", "#6C7BD1", "#B65C8C"]
+
+
+def category_accent(category):
+    if not category:
+        return _ACCENT_FALLBACKS[0]
+    if category in CATEGORY_PALETTE:
+        return CATEGORY_PALETTE[category]
+    idx = sum(ord(c) for c in category) % len(_ACCENT_FALLBACKS)
+    return _ACCENT_FALLBACKS[idx]
+
+
+def category_tint(category, alpha=0.12):
+    hex_color = category_accent(category).lstrip("#")
+    r, g, b = (int(hex_color[i:i + 2], 16) for i in (0, 2, 4))
+    return f"rgba({r},{g},{b},{alpha})"
+
+
+app.jinja_env.globals["cat_accent"] = category_accent
+app.jinja_env.globals["cat_tint"] = category_tint
 
 # ----------------------------------------------------------------------
 # DATABASE
@@ -217,18 +254,22 @@ BASE_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
 
 :root {
-    --hdr: #2F9BFF;
-    --tq: #C25A00;
+    --ink: #05070a;
     --navy: #1A2942;
     --xrp: #008CFF;
-    --bg: #05070c;
-    --panel: #0a0d15;
-    --card: #0b0e17;
-    --card-hi: #111624;
-    --line: #202b40;
-    --line-soft: #161c29;
+    --hdr: #2F9BFF;
+    --tq: #C6952E;
+    --emerald: #3F8F6E;
+    --rose: #B65C8C;
+    --indigo: #6C7BD1;
+    --bg: #05070a;
+    --panel: #0A0D14;
+    --card: #0B0E17;
+    --card-hi: #10141F;
+    --line: #232E44;
+    --line-soft: #161C29;
     --text: #E7EBF3;
-    --muted: #8992a6;
+    --muted: #8992A6;
     --serif: 'Source Serif 4', Georgia, 'Times New Roman', serif;
     --sans: 'Inter', -apple-system, 'Segoe UI', Helvetica, Arial, sans-serif;
     --mn: 'IBM Plex Mono', 'SF Mono', Consolas, Menlo, monospace;
@@ -239,34 +280,49 @@ body {
     margin: 0;
     font-family: var(--sans);
     background:
-        radial-gradient(1100px 480px at 88% -140px, rgba(26,41,66,0.30) 0%, transparent 70%),
+        radial-gradient(1100px 480px at 88% -160px, rgba(47,155,255,0.07) 0%, transparent 70%),
         var(--bg);
     color: var(--text);
     -webkit-font-smoothing: antialiased;
 }
 .shell { max-width: 1400px; margin: 0 auto; }
-::selection { background: rgba(0,140,255,0.28); }
+::selection { background: rgba(47,155,255,0.28); }
 a:focus-visible, button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible {
     outline: 2px solid var(--hdr); outline-offset: 2px;
 }
 
+/* ── UTILITY BAR ────────────────────────────────────────────── */
+.util-bar {
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 7px 32px;
+    font-family: var(--mn); font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase;
+    color: var(--muted);
+    background: var(--navy);
+    border-bottom: 1px solid var(--line-soft);
+}
+.util-bar .is-src-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); display: inline-block; margin-right: 8px; }
+.util-left, .util-right { display: inline-flex; align-items: center; color: #C7D6E8; }
+.util-sep { color: rgba(199,214,232,0.35); margin: 0 9px; }
+.util-right .live-badge { margin-right: 0; }
+@media (max-width: 760px) { .util-bar { display: none; } }
+
 /* ── TOP NAV ────────────────────────────────────────────────── */
 nav.top-nav {
     display: flex; align-items: center; justify-content: space-between; gap: 20px;
-    padding: 14px 32px;
-    background: rgba(6,9,15,0.97);
+    padding: 15px 32px;
+    background: rgba(6,9,14,0.97);
     border-bottom: 1px solid var(--line-soft);
 }
 .nav-brand { display: flex; align-items: center; gap: 12px; text-decoration: none; flex-shrink: 0; }
-.nav-brand img { height: 36px; width: auto; display: block; border-radius: 5px; }
+.nav-brand img { height: 34px; width: auto; display: block; border-radius: 5px; }
 .nav-brand-col { display: flex; flex-direction: column; line-height: 1.1; }
-.nav-brand-name { color: #fff; font-weight: 700; font-size: 16px; letter-spacing: 0.3px; font-family: var(--sans); }
+.nav-brand-name { color: #fff; font-weight: 700; font-size: 16px; letter-spacing: 0.2px; font-family: var(--sans); }
 .nav-brand-name .nb-lite { color: var(--hdr); font-weight: 600; }
-.nav-brand-sub { color: var(--muted); font-family: var(--mn); font-size: 8.5px; letter-spacing: 2.6px; text-transform: uppercase; margin-top: 3px; }
-.nav-links { display: flex; align-items: center; gap: 30px; }
+.nav-brand-sub { color: var(--muted); font-family: var(--mn); font-size: 8.5px; letter-spacing: 2.4px; text-transform: uppercase; margin-top: 3px; }
+.nav-links { display: flex; align-items: center; gap: 32px; }
 .nav-links a {
     color: var(--muted); text-decoration: none;
-    font-family: var(--sans); font-weight: 500; font-size: 13.5px; letter-spacing: 0.2px;
+    font-family: var(--sans); font-weight: 500; font-size: 13.5px; letter-spacing: 0.1px;
     padding: 6px 0; position: relative; transition: color 0.15s ease;
 }
 .nav-links a:hover { color: var(--text); }
@@ -297,31 +353,23 @@ nav.top-nav {
 @media (max-width: 620px) { .nav-search-form input { width: 90px; } }
 @media (max-width: 1050px) { .nav-links { display: none; } }
 
-/* ── INTELLIGENCE STRIP ─────────────────────────────────────── */
-.intel-strip {
-    display: flex; align-items: center; justify-content: space-between; gap: 16px;
-    padding: 8px 32px;
-    font-family: var(--mn); font-size: 10px; letter-spacing: 1.6px; text-transform: uppercase;
-    color: var(--muted);
-    background: var(--navy);
-    border-bottom: 1px solid var(--line-soft);
+/* ── LIVE BADGE (utility bar) ──────────────────────────────── */
+.live-badge { display: inline-flex; align-items: center; gap: 6px; color: var(--emerald); font-weight: 600; font-size: 10px; letter-spacing: 1.4px; }
+.live-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); box-shadow: 0 0 0 0 rgba(63,143,110,0.6); animation: pulse 1.8s infinite; }
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(63,143,110,0.5); opacity: 1; }
+  50% { opacity: 0.35; }
+  70% { box-shadow: 0 0 0 6px rgba(63,143,110,0); }
+  100% { box-shadow: 0 0 0 0 rgba(63,143,110,0); opacity: 1; }
 }
-.intel-strip .is-brand { color: #cfe0f0; display: inline-flex; align-items: center; gap: 8px; }
-.intel-strip .is-src-dot { width: 6px; height: 6px; border-radius: 50%; background: #3fae6e; flex-shrink: 0; }
-.intel-strip .is-dot { color: var(--muted); }
-.intel-strip .is-domains { color: #cfe0f0; }
-.intel-strip .is-advisory { color: var(--tq); font-weight: 600; }
-@media (max-width: 700px) { .intel-strip { display: none; } }
 
 /* ── HERO ───────────────────────────────────────────────────── */
 header.site-header {
     position: relative;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 30px;
-    min-height: 400px;
-    padding: 40px 44px 42px;
+    min-height: 460px;
+    padding: 56px 48px;
     overflow: hidden;
     background: #000;
     border-bottom: 1px solid var(--line-soft);
@@ -329,119 +377,67 @@ header.site-header {
 .mast-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
 .mast-bg img {
     width: 100%; height: 100%; object-fit: cover; object-position: 68% 42%;
-    display: block; opacity: 0.9; filter: saturate(0.92) brightness(1.02);
+    display: block; opacity: 0.92; filter: saturate(0.9) brightness(1);
 }
 .mast-scrim {
     position: absolute; inset: 0; z-index: 1; pointer-events: none;
     background:
-        linear-gradient(90deg, rgba(5,7,12,0.96) 0%, rgba(5,7,12,0.86) 32%, rgba(5,7,12,0.30) 60%, rgba(5,7,12,0.45) 100%),
-        linear-gradient(180deg, rgba(0,0,0,0.15) 0%, transparent 30%, rgba(0,0,0,0.55) 100%);
+        linear-gradient(100deg, rgba(5,7,10,0.97) 0%, rgba(5,7,10,0.90) 38%, rgba(5,7,10,0.42) 66%, rgba(5,7,10,0.55) 100%),
+        linear-gradient(180deg, rgba(0,0,0,0.10) 0%, transparent 34%, rgba(0,0,0,0.55) 100%);
 }
-.hdr-left-block { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; gap: 0; flex-shrink: 0; max-width: 600px; }
+.hdr-left-block { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; gap: 0; max-width: 620px; }
 .hero-eyebrow {
-    font-family: var(--mn); font-size: 10.5px; letter-spacing: 3.4px; text-transform: uppercase;
-    color: var(--hdr); margin-bottom: 14px;
+    font-family: var(--mn); font-size: 10.5px; letter-spacing: 3.6px; text-transform: uppercase;
+    color: var(--tq); margin-bottom: 18px;
 }
 .hero-title {
-    color: #fff; font-size: 38px; font-weight: 600; line-height: 1.14; letter-spacing: -0.2px;
-    margin: 0 0 16px;
+    color: #fff; font-size: 44px; font-weight: 600; line-height: 1.1; letter-spacing: -0.3px;
+    margin: 0 0 18px;
     font-family: var(--serif);
 }
 .hero-title em { color: var(--hdr); font-style: italic; }
 .hero-sub {
-    color: #b9c2d4; font-size: 16px; line-height: 1.6; max-width: 460px;
-    margin: 0 0 24px; font-family: var(--sans);
+    color: #b9c2d4; font-size: 17px; line-height: 1.62; max-width: 480px;
+    margin: 0 0 22px; font-family: var(--sans);
 }
-.hero-feats { display: flex; align-items: flex-start; gap: 24px; margin-bottom: 26px; flex-wrap: wrap; }
-.hf-item {
-    display: flex; flex-direction: column; align-items: center; gap: 10px;
-    width: 86px; text-align: center; text-decoration: none;
+.hero-coverage {
+    font-family: var(--mn); font-size: 10px; letter-spacing: 1.2px; text-transform: uppercase;
+    color: #8fa2bd; margin-bottom: 30px; line-height: 2;
 }
-.hf-icon {
-    width: 44px; height: 44px; border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(255,255,255,0.04);
-    border: 1px solid var(--line);
-    transition: border-color 0.15s ease, background 0.15s ease;
-}
-.hf-item:hover .hf-icon { border-color: var(--hdr); background: rgba(47,155,255,0.08); }
-.hf-icon svg { width: 20px; height: 20px; stroke: var(--hdr); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.hf-label {
-    color: #b9c2d4; font-family: var(--mn); font-size: 8.5px; letter-spacing: 1.4px;
-    text-transform: uppercase; line-height: 1.5;
-}
-.cta-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.hero-coverage .hc-dot { color: var(--tq); margin: 0 10px; }
+.cta-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .cta-primary {
     display: inline-flex; align-items: center; gap: 8px;
     background: var(--hdr); color: #04101c;
-    font-weight: 700; font-size: 13px; letter-spacing: 0.3px;
+    font-weight: 700; font-size: 13.5px; letter-spacing: 0.2px;
     font-family: var(--sans);
-    padding: 13px 24px; border-radius: 7px; text-decoration: none;
-    box-shadow: 0 4px 16px rgba(47,155,255,0.22);
-    transition: box-shadow 0.15s ease, transform 0.15s ease, background 0.15s ease;
+    padding: 14px 26px; border-radius: 7px; text-decoration: none;
+    box-shadow: 0 6px 20px rgba(47,155,255,0.25);
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
-.cta-primary:hover { box-shadow: 0 6px 22px rgba(47,155,255,0.34); transform: translateY(-1px); }
+.cta-primary:hover { box-shadow: 0 8px 26px rgba(47,155,255,0.4); transform: translateY(-1px); }
 .visit-btn {
     display: inline-flex;
     align-items: center;
     gap: 7px;
     background: transparent;
-    color: var(--text);
-    border: 1px solid var(--line);
+    color: #dbe3ef;
+    border: 1px solid rgba(255,255,255,0.22);
     font-weight: 600;
-    padding: 12px 22px;
+    padding: 13px 24px;
     border-radius: 7px;
     text-decoration: none;
-    font-size: 13px;
-    letter-spacing: 0.3px;
+    font-size: 13.5px;
+    letter-spacing: 0.2px;
     font-family: var(--sans);
     transition: border-color 0.15s ease, color 0.15s ease, background 0.15s ease;
 }
-.visit-btn:hover { border-color: var(--hdr); color: var(--hdr); background: rgba(47,155,255,0.06); }
-.hdr-astronaut { display: none; }
-
-/* floating status card */
-.hdr-right {
-    position: relative; z-index: 2;
-    align-self: flex-start;
-    display: flex; flex-direction: column; gap: 0;
-    min-width: 216px;
-    background: rgba(10,13,21,0.92);
-    border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 12px 15px 14px;
-    font-family: var(--mn); font-size: 11px; color: var(--muted);
-    box-shadow: 0 20px 44px rgba(0,0,0,0.5);
-    backdrop-filter: blur(8px);
-    white-space: nowrap;
+.visit-btn:hover { border-color: var(--hdr); color: var(--hdr); background: rgba(47,155,255,0.08); }
+@media (max-width: 980px) {
+    header.site-header { min-height: 0; padding: 40px 24px; }
+    .hero-title { font-size: 30px; }
+    .mast-bg img { object-position: 74% 40%; }
 }
-.console-head {
-    display: flex; align-items: center; justify-content: space-between; gap: 14px;
-    padding-bottom: 8px; margin-bottom: 8px;
-    border-bottom: 1px solid var(--line-soft);
-}
-.console-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 2px 0; letter-spacing: 0.4px; }
-.console-row .ck { color: var(--muted); text-transform: uppercase; font-size: 9.5px; letter-spacing: 1.4px; }
-.console-row .cv { color: var(--text); }
-.live-badge { display: inline-flex; align-items: center; gap: 6px; color: #4fae76; font-weight: 600; font-size: 10.5px; border: 1px solid rgba(79,174,118,0.5); border-radius: 5px; padding: 2px 9px; font-family: var(--mn); letter-spacing: 1.6px; }
-.live-dot { width: 6px; height: 6px; border-radius: 50%; background: #4fae76; box-shadow: 0 0 0 0 rgba(79,174,118,0.6); animation: pulse 1.8s infinite; }
-@keyframes pulse {
-  0% { box-shadow: 0 0 0 0 rgba(79,174,118,0.5); opacity: 1; }
-  50% { opacity: 0.35; }
-  70% { box-shadow: 0 0 0 6px rgba(79,174,118,0); }
-  100% { box-shadow: 0 0 0 0 rgba(79,174,118,0); opacity: 1; }
-}
-.hdr-right .visit-btn { margin-top: 10px; justify-content: center; padding: 8px 14px; font-size: 12px; }
-.visit-sub { color: var(--hdr); font-size: 12px; font-family: var(--sans); }
-.visit-sub em { font-style: italic; }
-.brand-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
-.sat-icon { display: none; }
-.brand-col { display: flex; flex-direction: column; }
-.brand-title { color: #ffffff; font-size: 32px; font-weight: 600; font-style: italic; font-family: var(--serif); }
-.brand-title .blog-word { color: #ffffff; font-style: italic; }
-.brand-tagline { color: var(--hdr); font-size: 17px; }
-.brand-tagline em { font-style: italic; }
-.suffixes { color: #ffffff; font-size: 15px; }
 
 /* ── LAYOUT (content left, sidebar right) ───────────────────── */
 .layout { display: flex; min-height: 70vh; }
@@ -450,11 +446,10 @@ aside.sidebar {
     width: 24%;
     min-width: 270px;
     border-left: 1px solid var(--line-soft);
-    border-right: none;
     padding: 32px 24px;
     background: rgba(255,255,255,0.012);
 }
-main.content { order: 1; width: 76%; padding: 38px 42px 52px; }
+main.content { order: 1; width: 76%; padding: 40px 44px 54px; }
 
 .sb-panel {
     background: var(--panel);
@@ -481,8 +476,7 @@ main.content { order: 1; width: 76%; padding: 38px 42px 52px; }
 .sb-list a { color: var(--text); text-decoration: none; font-size: 13.5px; line-height: 1.4; display: block; flex: 1; transition: color 0.15s ease; font-family: var(--sans); }
 .sb-list a:hover { color: var(--hdr); }
 .sb-cat-count { color: var(--muted); font-size: 11.5px; font-family: var(--mn); margin-left: auto; flex-shrink: 0; }
-.topic-ico { width: 24px; height: 24px; border-radius: 6px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.04); border: 1px solid var(--line); }
-.topic-ico svg { width: 12px; height: 12px; stroke: var(--hdr); fill: none; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.cat-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cat, var(--hdr)); flex-shrink: 0; }
 .count-pill {
     margin-left: auto; flex-shrink: 0;
     background: rgba(255,255,255,0.04); color: var(--muted);
@@ -493,7 +487,7 @@ main.content { order: 1; width: 76%; padding: 38px 42px 52px; }
 .sb-view-all {
     display: inline-block; margin-top: 14px;
     color: var(--hdr); text-decoration: none;
-    font-family: var(--sans); font-weight: 600; font-size: 12px; letter-spacing: 0.2px;
+    font-family: var(--sans); font-weight: 600; font-size: 12px; letter-spacing: 0.1px;
 }
 .sb-view-all:hover { color: var(--tq); }
 .sb-sub-copy { color: var(--muted); font-size: 13px; line-height: 1.55; margin: 0 0 12px; }
@@ -502,19 +496,24 @@ main.content { order: 1; width: 76%; padding: 38px 42px 52px; }
 .sub-btn {
     background: var(--hdr); color: #04101c; font-weight: 700;
     border: none; border-radius: 6px; padding: 10px 12px; cursor: pointer;
-    font-family: var(--sans); font-size: 13px; letter-spacing: 0.2px;
+    font-family: var(--sans); font-size: 13px; letter-spacing: 0.1px;
     transition: box-shadow 0.15s ease;
 }
 .sub-btn:hover { box-shadow: 0 4px 16px rgba(47,155,255,0.3); }
 .sub-privacy { display: flex; align-items: center; gap: 7px; color: var(--muted); font-size: 11.5px; margin-top: 11px; }
 .sub-privacy svg { width: 12px; height: 12px; stroke: var(--muted); fill: none; stroke-width: 2; flex-shrink: 0; }
-.sub-ok { color: var(--hdr); font-size: 12.5px; margin-top: 10px; font-family: var(--mn); }
-.net-row { display: flex; align-items: center; gap: 9px; padding: 9px 0; border-bottom: 1px solid var(--line-soft); }
+.sub-ok { color: var(--emerald); font-size: 13px; margin-top: 4px; font-family: var(--sans); line-height: 1.5; }
+.net-row { display: flex; align-items: center; gap: 9px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.06); }
 .net-row:last-of-type { border-bottom: none; }
-.net-dot { width: 6px; height: 6px; border-radius: 50%; background: #3fae6e; flex-shrink: 0; }
-.net-key { color: var(--muted); font-size: 12.5px; }
+.net-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--emerald); flex-shrink: 0; }
+.net-key { color: #97A5BC; font-size: 12.5px; }
 .net-val { margin-left: auto; color: #fff; font-family: var(--mn); font-size: 12px; letter-spacing: 0.3px; }
 .search-form input { width: 100%; margin-bottom: 0; font-family: var(--sans); font-size: 13px; }
+@media (max-width: 900px) {
+    .layout { flex-direction: column; }
+    aside.sidebar, main.content { width: 100%; order: 0; }
+    aside.sidebar { border-left: none; border-top: 1px solid var(--line-soft); }
+}
 
 /* ── HEADINGS / META ────────────────────────────────────────── */
 .page-eyebrow {
@@ -546,9 +545,18 @@ a.post-link:hover h2, a.post-link:hover .feat-title { color: var(--hdr); }
 .section-title::before { content: ""; width: 4px; height: 16px; border-radius: 2px; background: var(--tq); }
 .section-link {
     color: var(--hdr); text-decoration: none;
-    font-family: var(--sans); font-weight: 600; font-size: 12px; letter-spacing: 0.2px;
+    font-family: var(--sans); font-weight: 600; font-size: 12px; letter-spacing: 0.1px;
 }
 .section-link:hover { color: var(--tq); }
+
+/* ── CATEGORY TAG (color-coded per section, see CATEGORY_PALETTE) ── */
+.category-tag {
+    display: inline-block; background: var(--cat-tint, rgba(47,155,255,0.1)); color: var(--cat, var(--hdr));
+    font-size: 9.5px; padding: 3px 10px; border-radius: 4px; margin-bottom: 12px;
+    font-family: var(--mn); text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600;
+    border: 1px solid var(--cat, rgba(47,155,255,0.3));
+    align-self: flex-start;
+}
 
 /* ── FEATURED BRIEFING ──────────────────────────────────────── */
 .feat-card {
@@ -563,41 +571,41 @@ a.post-link:hover h2, a.post-link:hover .feat-title { color: var(--hdr); }
 }
 .feat-card::before {
     content: ""; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; z-index: 2;
-    background: var(--hdr);
+    background: var(--cat, var(--hdr));
 }
 .feat-card:hover {
     transform: translateY(-2px);
-    border-color: rgba(47,155,255,0.4);
+    border-color: rgba(255,255,255,0.16);
     box-shadow: 0 20px 44px rgba(0,0,0,0.45);
 }
-.feat-media { flex: 0 0 44%; min-height: 320px; background: #05070c; position: relative; overflow: hidden; }
+.feat-media { flex: 0 0 46%; min-height: 340px; background: #05070c; position: relative; overflow: hidden; }
 .feat-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.5s ease; }
 .feat-card:hover .feat-media img { transform: scale(1.03); }
 .feat-media.empty { display: flex; align-items: center; justify-content: center; color: var(--muted); font-family: var(--mn); font-size: 11px; letter-spacing: 1.6px; text-transform: uppercase; border-right: 1px dashed var(--line); }
-.feat-body { flex: 1; padding: 34px 38px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.feat-body { flex: 1; padding: 38px 42px; display: flex; flex-direction: column; justify-content: center; min-width: 0; }
 .feat-eyebrow {
     display: inline-flex; align-items: center; gap: 9px;
     font-family: var(--mn); font-size: 10px; letter-spacing: 2.4px; text-transform: uppercase; color: var(--tq);
     margin-bottom: 16px;
 }
 .feat-eyebrow::before { content: ""; width: 20px; height: 2px; background: var(--tq); border-radius: 2px; }
-.feat-title { color: #fff; font-family: var(--serif); font-weight: 600; font-size: 29px; line-height: 1.2; margin: 0 0 14px; }
+.feat-title { color: #fff; font-family: var(--serif); font-weight: 600; font-size: 31px; line-height: 1.18; margin: 0 0 14px; }
 .feat-meta { color: var(--muted); font-family: var(--mn); font-size: 11.5px; letter-spacing: 0.4px; margin-bottom: 16px; }
 .feat-excerpt { color: var(--muted); font-family: var(--sans); font-size: 15.5px; line-height: 1.7; display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden; margin-bottom: 20px; }
-.feat-read { font-family: var(--sans); font-weight: 600; font-size: 12.5px; letter-spacing: 0.2px; color: var(--hdr); }
+.feat-read { font-family: var(--sans); font-weight: 600; font-size: 12.5px; letter-spacing: 0.1px; color: var(--hdr); }
 .feat-card:hover .feat-read { color: var(--tq); }
 @media (max-width: 900px) {
     .feat-card { flex-direction: column; }
     .feat-media { flex-basis: auto; min-height: 220px; }
-    .feat-body { padding: 24px; }
-    .feat-title { font-size: 24px; }
+    .feat-body { padding: 26px; }
+    .feat-title { font-size: 25px; }
 }
 
 /* ── BRIEFING GRID ──────────────────────────────────────────── */
 .brief-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 22px;
+    gap: 24px;
 }
 .post-card {
     position: relative;
@@ -608,22 +616,20 @@ a.post-link:hover h2, a.post-link:hover .feat-title { color: var(--hdr); }
     border-radius: 9px;
     overflow: hidden;
     transition: transform 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
-    margin-bottom: 0;
-    padding: 0;
-    gap: 0;
 }
-.post-card::before { content: none; }
+.post-card::before {
+    content: ""; position: absolute; left: 0; top: 0; right: 0; height: 3px; z-index: 2;
+    background: var(--cat, var(--hdr));
+}
 .post-card:hover {
     transform: translateY(-2px);
-    border-color: rgba(47,155,255,0.35);
+    border-color: rgba(255,255,255,0.14);
     box-shadow: 0 16px 34px rgba(0,0,0,0.4);
 }
 .post-thumb {
     width: 100%;
     height: 190px;
-    border: none;
     border-bottom: 1px solid var(--line-soft);
-    border-radius: 0;
     background: #05070c;
     overflow: hidden;
     display: flex;
@@ -634,15 +640,8 @@ a.post-link:hover h2, a.post-link:hover .feat-title { color: var(--hdr); }
 .post-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform 0.4s ease; }
 .post-card:hover .post-thumb img { transform: scale(1.04); }
 .post-thumb.empty { color: var(--muted); font-size: 10.5px; letter-spacing: 1.6px; border-bottom-style: dashed; font-family: var(--mn); text-transform: uppercase; }
-.post-card-body { flex: 1; min-width: 0; padding: 20px 22px 20px; display: flex; flex-direction: column; }
+.post-card-body { flex: 1; min-width: 0; padding: 20px 22px; display: flex; flex-direction: column; }
 .post-card-body .excerpt { margin-bottom: 16px; }
-.category-tag {
-    display: inline-block; background: rgba(47,155,255,0.08); color: var(--hdr);
-    font-size: 9.5px; padding: 3px 10px; border-radius: 4px; margin-bottom: 12px;
-    font-family: var(--mn); text-transform: uppercase; letter-spacing: 1.2px;
-    border: 1px solid rgba(47,155,255,0.25);
-    align-self: flex-start;
-}
 .post-card h2 { font-size: 18px; margin: 0 0 9px; }
 .post-card .meta { margin-bottom: 12px; font-size: 11px; }
 .card-foot {
@@ -702,12 +701,12 @@ table { width: 100%; border-collapse: collapse; margin-top: 16px; }
 th, td { text-align: left; padding: 10px 9px; border-bottom: 1px solid var(--line-soft); font-size: 13.5px; font-family: var(--sans); }
 th { color: var(--muted); font-family: var(--mn); font-size: 10.5px; text-transform: uppercase; letter-spacing: 1.2px; font-weight: 600; }
 .badge { padding: 3px 9px; border-radius: 4px; font-size: 10.5px; font-family: var(--mn); }
-.badge.pub { background: rgba(79,174,118,0.14); color: #4fae76; }
+.badge.pub { background: rgba(63,143,110,0.16); color: var(--emerald); }
 .badge.draft { background: rgba(139,147,167,0.14); color: var(--muted); }
 .flash { background: rgba(47,155,255,0.10); color: var(--hdr); padding: 10px 14px; border-radius: 6px; margin-bottom: 14px; font-size: 13px; border: 1px solid rgba(47,155,255,0.25); }
 .hint { color: var(--muted); font-size: 12px; margin-top: -6px; margin-bottom: 12px; }
 
-/* ── ADVERTISEMENTS STRIP ─────────────────────────────────────── */
+/* ── ADVERTISEMENTS / SPONSORED STRIP ──────────────────────── */
 section.ad-strip {
     margin: 16px 24px 30px;
     background: var(--panel);
@@ -763,34 +762,50 @@ section.trust-strip {
 
 /* ── FOOTER ─────────────────────────────────────────────────── */
 footer.site-footer {
-    display: flex;
-    flex-direction: column;
-    gap: 0;
     border-top: 1px solid var(--line-soft);
-    padding: 0;
     color: var(--muted);
     font-size: 12px;
+    background: var(--ink);
 }
-.foot-deck {
-    display: flex; align-items: center; justify-content: space-between; gap: 16px;
-    padding: 22px 28px;
+.foot-grid {
+    display: grid;
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
+    gap: 32px;
+    padding: 44px 32px 36px;
+    max-width: 1400px;
+    margin: 0 auto;
 }
-.foot-deck.legal {
-    border-top: 1px solid var(--line-soft);
-    font-family: var(--mn); font-size: 10.5px; letter-spacing: 0.2px;
-    background: var(--panel);
-}
-.foot-id { display: flex; align-items: center; gap: 12px; }
+.foot-col-brand { padding-right: 12px; }
+.foot-id { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
 .foot-id img { height: 30px; width: auto; display: block; border-radius: 5px; }
 .foot-id-col { display: flex; flex-direction: column; line-height: 1.15; }
 .foot-brand { color: var(--text); font-weight: 700; font-size: 13.5px; letter-spacing: 0.2px; font-family: var(--sans); font-style: normal; }
 .foot-brand .nb-lite { color: var(--hdr); }
 .foot-sub { color: var(--muted); font-family: var(--mn); font-size: 8px; letter-spacing: 2.2px; text-transform: uppercase; margin-top: 2px; }
-.foot-tag { color: var(--hdr); font-size: 12px; }
-.foot-links { font-family: var(--sans); font-weight: 500; font-size: 12.5px; letter-spacing: 0.1px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-.foot-links a { color: var(--muted); text-decoration: none; transition: color 0.15s ease; }
-.foot-links a:hover { color: var(--hdr); }
-@media (max-width: 700px) { .foot-deck { flex-direction: column; align-items: flex-start; gap: 10px; } }
+.foot-tagline { color: #8592A8; font-size: 13px; line-height: 1.6; margin: 0; max-width: 260px; }
+.foot-col-title {
+    color: #fff; font-size: 10px; text-transform: uppercase; letter-spacing: 1.8px; font-weight: 600;
+    font-family: var(--mn); margin-bottom: 16px;
+}
+.foot-col-list { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 11px; }
+.foot-col-list a { color: var(--muted); text-decoration: none; font-size: 13.5px; font-family: var(--sans); transition: color 0.15s ease; }
+.foot-col-list a:hover { color: var(--hdr); }
+.foot-col-pulse .net-key { color: #7C8AA0; font-size: 12px; }
+.foot-col-pulse .net-val { font-size: 11px; }
+.foot-deck.legal {
+    border-top: 1px solid var(--line-soft);
+    font-family: var(--mn); font-size: 10.5px; letter-spacing: 0.2px;
+    background: var(--panel);
+    display: flex; align-items: center; justify-content: space-between; gap: 16px;
+    padding: 18px 32px;
+}
+@media (max-width: 900px) {
+    .foot-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 700px) {
+    .foot-grid { grid-template-columns: 1fr; padding: 36px 24px 28px; }
+    .foot-deck.legal { flex-direction: column; align-items: flex-start; gap: 10px; padding: 16px 24px; }
+}
 #debug-panel {
     display: none;
     background: var(--card);
@@ -804,17 +819,6 @@ footer.site-footer {
 }
 #debug-panel div { margin-bottom: 4px; }
 
-@media (max-width: 980px) {
-    header.site-header { flex-direction: column; align-items: stretch; min-height: 0; padding: 34px 24px; }
-    .hdr-right { align-self: flex-start; margin-top: 8px; }
-    .hero-title { font-size: 27px; }
-    .mast-bg img { object-position: 74% 40%; }
-}
-@media (max-width: 900px) {
-    .layout { flex-direction: column; }
-    aside.sidebar, main.content { width: 100%; order: 0; }
-    aside.sidebar { border-left: none; border-top: 1px solid var(--line-soft); }
-}
 @media (prefers-reduced-motion: reduce) {
     *:not(.live-dot) { animation: none !important; transition: none !important; }
     html { scroll-behavior: auto; }
@@ -10944,9 +10948,20 @@ ASTRONAUT_IMAGE_B64 = (
     "ooqRhRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAFFFFABRRRQAUUUUAf/9k="
 )
 
+def _network_status_rows():
+    rows = []
+    for label, value in NETWORK_STATUS:
+        rows.append(
+            '<div class="net-row"><span class="net-dot"></span>'
+            '<span class="net-key">' + label + '</span>'
+            '<span class="net-val">' + value + "</span></div>"
+        )
+    return "".join(rows)
+
+
 FOOTER_BLOCK = """
 <section class="ad-strip">
-  <div class="ad-strip-label">Advertisement</div>
+  <div class="ad-strip-label">Sponsored</div>
   <a class="ad-strip-slot" href="https://xrpcomplete.com" target="_blank" rel="noopener">
     <img src="{{ url_for('sidebar_ad_image') }}" alt="XRP Complete">
   </a>
@@ -10960,23 +10975,40 @@ FOOTER_BLOCK = """
   <div>Server Time (UTC): {{ server_time }}</div>
 </div>
 <footer class="site-footer">
-  <div class="foot-deck">
-    <span class="foot-id">
-      <img src="/static/helix.jpg?v={{ version }}" alt="XRP Complete">
-      <span class="foot-id-col">
-        <span class="foot-brand">XRP <span class="nb-lite">COMPLETE</span></span>
-        <span class="foot-sub">Intelligence Network</span>
+  <div class="foot-grid">
+    <div class="foot-col foot-col-brand">
+      <span class="foot-id">
+        <img src="/static/helix.jpg?v={{ version }}" alt="XRP Complete">
+        <span class="foot-id-col">
+          <span class="foot-brand">XRP <span class="nb-lite">COMPLETE</span></span>
+          <span class="foot-sub">Intelligence Network</span>
+        </span>
       </span>
-    </span>
-    <span class="foot-links">
-      <a href="/about">About</a>
-      <a href="/privacy">Privacy Policy</a>
-      <a href="/disclaimer">Disclaimer</a>
-      <a href="/terms">Terms of Use</a>
-      <a href="https://xrpcomplete.com" target="_blank" rel="noopener">Contact</a>
-    </span>
+      <p class="foot-tagline">Independent intelligence on the XRP Ledger and the future of institutional finance.</p>
+    </div>
+    <div class="foot-col">
+      <div class="foot-col-title">Sections</div>
+      <ul class="foot-col-list">
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+        <li><a href="{{ url_for('briefings') }}">Briefings</a></li>
+        <li><a href="{{ url_for('by_category', category='Legislation') }}">Legislation</a></li>
+        <li><a href="/about">About</a></li>
+      </ul>
+    </div>
+    <div class="foot-col">
+      <div class="foot-col-title">Legal</div>
+      <ul class="foot-col-list">
+        <li><a href="/privacy">Privacy Policy</a></li>
+        <li><a href="/disclaimer">Disclaimer</a></li>
+        <li><a href="/terms">Terms of Use</a></li>
+        <li><a href="https://xrpcomplete.com" target="_blank" rel="noopener">Contact</a></li>
+      </ul>
+    </div>
+    <div class="foot-col foot-col-pulse">
+      <div class="foot-col-title">Network Pulse</div>
+""" + _network_status_rows() + """
+    </div>
   </div>
-  <div class="foot-copy">\u00a9 2026 XRP Complete Blog. All Rights Reserved.</div>
   <div class="foot-deck legal">
     <span>\u00a9\ufe0f Copyright 2026 XRP Complete / Red Rio Ventures, LLC. All rights reserved globally. &middot; Visitors: {{ visitor_count }}</span>
     <span class="row">
@@ -10988,6 +11020,13 @@ FOOTER_BLOCK = """
 """
 
 HEADER_BLOCK = '''
+<div class="util-bar">
+  <span class="util-left"><span class="is-src-dot"></span>''' + GLOBAL_SOURCES + ''' Global Sources Monitored <span class="util-sep">&middot;</span> Not Financial Advice</span>
+  <span class="util-right">
+    <span class="live-badge"><span class="live-dot"></span>LIVE</span>
+    <span class="util-sep">&middot;</span> Build {{ version }} <span class="util-sep">&middot;</span> Updated {{ last_updated_date }}
+  </span>
+</div>
 <nav class="top-nav">
   <a class="nav-brand" href="/">
     <img src="/static/helix.jpg?v={{ version }}" alt="XRP Complete">
@@ -11009,99 +11048,31 @@ HEADER_BLOCK = '''
     </button>
   </form>
 </nav>
-<div class="intel-strip">
-  <span class="is-brand"><span class="is-src-dot"></span>''' + GLOBAL_SOURCES + ''' Global Sources Monitored</span>
-  <span class="is-domains">XRPCOMPLETE.COM <span class="is-dot">&#124;</span> XRPCOMPLETEBLOG.COM</span>
-  <span class="is-advisory">Not Financial Advice</span>
-</div>
 <header class="site-header">
   <div class="mast-bg"><img src="data:image/jpeg;base64,''' + ASTRONAUT_IMAGE_B64 + '''" alt=""></div>
   <div class="mast-scrim"></div>
   <div class="hdr-left-block">
     <div class="hero-eyebrow">XRP Complete Blog</div>
-    <h1 class="hero-title">The <em>NEW</em> XRP<br>Intelligence Standard BLOG</h1>
+    <h1 class="hero-title">The XRP Intelligence<br>Standard</h1>
     <p class="hero-sub">Real-time intelligence, deep analysis, and institutional insights on the XRP Ledger and the future of finance.</p>
-    <div class="hero-feats">
-      <span class="hf-item">
-        <span class="hf-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 13l3.5-3.5"/><path d="M9 5.5 8 4M15 5.5 16 4"/></svg></span>
-        <span class="hf-label">Real-Time Intelligence</span>
-      </span>
-      <span class="hf-item">
-        <span class="hf-icon"><svg viewBox="0 0 24 24"><path d="M3 9 12 4l9 5H3z"/><path d="M6 9v8M10 9v8M14 9v8M18 9v8"/><path d="M4 17h16M3 20h18"/></svg></span>
-        <span class="hf-label">Regulatory Monitor</span>
-      </span>
-      <span class="hf-item">
-        <span class="hf-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M3.5 12h17M12 3.5c2.6 2.3 2.6 14.7 0 17-2.6-2.3-2.6-14.7 0-17z"/></svg></span>
-        <span class="hf-label">Institutional Adoption</span>
-      </span>
-      <span class="hf-item">
-        <span class="hf-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.8"/><circle cx="5" cy="5" r="1.8"/><circle cx="19" cy="5" r="1.8"/><circle cx="5" cy="19" r="1.8"/><circle cx="19" cy="19" r="1.8"/><path d="M6.3 6.3 10.7 10.7M17.7 6.3 13.3 10.7M6.3 17.7 10.7 13.3M17.7 17.7 13.3 13.3"/></svg></span>
-        <span class="hf-label">XRPL Ecosystem</span>
-      </span>
+    <div class="hero-coverage">
+      <span>Real-Time Intelligence</span><span class="hc-dot">&middot;</span>
+      <span>Regulatory Monitor</span><span class="hc-dot">&middot;</span>
+      <span>Institutional Adoption</span><span class="hc-dot">&middot;</span>
+      <span>XRPL Ecosystem</span>
     </div>
     <div class="cta-row">
       <a class="cta-primary" href="/#briefings">Latest Briefing &rarr;</a>
+      <a class="visit-btn" href="https://xrpcomplete.com" target="_blank" rel="noopener">Visit XRPComplete.com</a>
     </div>
-  </div>
-  <div class="hdr-right">
-    <div class="console-head">
-      <div class="live-badge"><span class="live-dot"></span>LIVE</div>
-    </div>
-    <div class="console-row"><span class="ck">Build</span><span class="cv">{{ version }}</span></div>
-    <div class="console-row"><span class="ck">Updated</span><span class="cv">{{ last_updated_date }}</span></div>
-    <div class="console-row"><span class="ck">&nbsp;</span><span class="cv">{{ last_updated_utc }}</span></div>
-    <div class="console-row"><span class="ck">&nbsp;</span><span class="cv">{{ last_updated_ct }}</span></div>
-    <a class="visit-btn" href="https://xrpcomplete.com" target="_blank" rel="noopener">WEBSITE</a>
   </div>
 </header>
 '''
 
 
-def _network_status_rows():
-    rows = []
-    for label, value in NETWORK_STATUS:
-        rows.append(
-            '<div class="net-row"><span class="net-dot"></span>'
-            '<span class="net-key">' + label + '</span>'
-            '<span class="net-val">' + value + "</span></div>"
-        )
-    return "".join(rows)
-
-
 def sidebar_html():
     return """
 <aside class="sidebar">
-  <div class="sb-panel">
-    <div class="sb-block">
-      <div class="sb-title">Popular Topics</div>
-      <ul class="sb-list">
-        {% for c in categories %}
-        <li>
-          <span class="topic-ico"><svg viewBox="0 0 24 24"><path d="M4 19V5M4 17c3-4 6 2 9-2s5-6 7-7"/></svg></span>
-          <a href="{{ url_for('by_category', category=c['category']) }}">{{ c['category'] }}</a>
-          <span class="count-pill">{{ c['n'] }}</span>
-        </li>
-        {% else %}
-        <li class="sb-cat-count">No topics yet.</li>
-        {% endfor %}
-      </ul>
-      <a class="sb-view-all" href="{{ url_for('index') }}">View All Topics &rarr;</a>
-    </div>
-  </div>
-  <div class="sb-panel">
-    <div class="sb-block">
-      <div class="sb-title">Network Status</div>
-""" + _network_status_rows() + """
-      <a class="sb-view-all" href="https://xrpcomplete.com" target="_blank" rel="noopener">View Full Dashboard &rarr;</a>
-    </div>
-  </div>
-  <div class="sb-panel sb-net">
-    <a href="https://xrpcomplete.com" target="_blank" rel="noopener"
-       style="display:block;width:100%;aspect-ratio:1/1;overflow:hidden;">
-      <img src="{{ url_for('sidebar_ad_image') }}" alt="XRP Complete"
-           style="width:100%;height:100%;object-fit:cover;display:block;">
-    </a>
-  </div>
   <div class="sb-panel">
     <div class="sb-block">
       <div class="sb-title">Recent Briefings</div>
@@ -11117,11 +11088,56 @@ def sidebar_html():
   </div>
   <div class="sb-panel">
     <div class="sb-block">
+      <div class="sb-title">Categories</div>
+      <ul class="sb-list">
+        {% for c in categories %}
+        <li>
+          <span class="cat-dot" style="--cat:{{ cat_accent(c['category']) }};"></span>
+          <a href="{{ url_for('by_category', category=c['category']) }}">{{ c['category'] }}</a>
+          <span class="count-pill">{{ c['n'] }}</span>
+        </li>
+        {% else %}
+        <li class="sb-cat-count">No categories yet.</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  <div class="sb-panel" id="subscribe">
+    <div class="sb-block">
+      <div class="sb-title">Subscribe</div>
+      {% if request.args.get('sub') == 'ok' %}
+      <div class="sub-ok">You're subscribed \u2014 welcome aboard.</div>
+      {% else %}
+      <p class="sb-sub-copy">New briefings straight to your inbox. No spam, ever.</p>
+      <form class="sub-form" method="post" action="{{ url_for('subscribe') }}">
+        <input type="email" name="email" placeholder="you@email.com" required>
+        <button class="sub-btn" type="submit">Subscribe</button>
+      </form>
+      {% if request.args.get('sub') == 'err' %}
+      <div class="sub-ok" style="color:#c1444a;">Enter a valid email address.</div>
+      {% endif %}
+      <div class="sub-privacy">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="4" y="10" width="16" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>
+        We respect your privacy.
+      </div>
+      {% endif %}
+    </div>
+  </div>
+  <div class="sb-panel">
+    <div class="sb-block">
       <div class="sb-title">Search</div>
       <form class="search-form" method="get" action="{{ url_for('search') }}">
         <input type="text" name="q" placeholder="Search briefings..." value="{{ query|default('') }}">
       </form>
     </div>
+  </div>
+  <div class="sb-panel sb-net">
+    <div class="ad-strip-label" style="padding:12px 14px 0;">Sponsored</div>
+    <a href="https://xrpcomplete.com" target="_blank" rel="noopener"
+       style="display:block;width:100%;aspect-ratio:1/1;overflow:hidden;">
+      <img src="{{ url_for('sidebar_ad_image') }}" alt="XRP Complete"
+           style="width:100%;height:100%;object-fit:cover;display:block;">
+    </a>
   </div>
 </aside>
 """
@@ -11174,8 +11190,8 @@ INDEX_TEMPLATE = """
   <main class="content" id="briefings">
     {% if featured_layout|default(false) %}
     <div class="section-head">
-      <span class="section-title">XRP Briefings</span>
-      <a class="section-link" href="{{ url_for('index') }}#briefings">View All Briefings &rarr;</a>
+      <span class="section-title">{{ heading }}</span>
+      <a class="section-link" href="{{ url_for('briefings') }}">View All Briefings &rarr;</a>
     </div>
     {% else %}
     <div class="page-eyebrow">Intelligence Briefings</div>
@@ -11186,15 +11202,15 @@ INDEX_TEMPLATE = """
       {% if featured_layout|default(false) %}
       {% set featured = posts[0] %}
       <a class="post-link" href="{{ url_for('show_post', slug=featured['slug']) }}">
-        <div class="feat-card">
+        <div class="feat-card" style="--cat:{{ cat_accent(featured['category']) }};">
           {% if featured['thumb'] %}
           <div class="feat-media"><img src="{{ url_for('uploaded_file', filename=featured['thumb']) }}" alt=""></div>
           {% else %}
           <div class="feat-media empty">No image</div>
           {% endif %}
           <div class="feat-body">
-            <div class="feat-eyebrow">Featured</div>
-            <div class="category-tag">{{ featured['category'] }}</div>
+            <div class="feat-eyebrow">Lead Briefing</div>
+            <div class="category-tag" style="--cat:{{ cat_accent(featured['category']) }}; --cat-tint:{{ cat_tint(featured['category']) }};">{{ featured['category'] }}</div>
             <div class="feat-title">{{ featured['title'] }}</div>
             <div class="feat-excerpt">{{ featured['excerpt'] }}</div>
             <div class="feat-meta">{{ featured['created_at'] }} &middot; {{ featured['read_min'] }} min read</div>
@@ -11207,14 +11223,14 @@ INDEX_TEMPLATE = """
       {% if grid_posts %}
       <div class="brief-grid">
         {% for p in grid_posts %}
-        <div class="post-card">
+        <div class="post-card" style="--cat:{{ cat_accent(p['category']) }};">
           {% if p['thumb'] %}
           <div class="post-thumb"><img src="{{ url_for('uploaded_file', filename=p['thumb']) }}" alt=""></div>
           {% else %}
           <div class="post-thumb empty">No image</div>
           {% endif %}
           <div class="post-card-body">
-            <div class="category-tag">{{ p['category'] }}</div>
+            <div class="category-tag" style="--cat:{{ cat_accent(p['category']) }}; --cat-tint:{{ cat_tint(p['category']) }};">{{ p['category'] }}</div>
             <a class="post-link" href="{{ url_for('show_post', slug=p['slug']) }}"><h2>{{ p['title'] }}</h2></a>
             <div class="excerpt">{{ p['excerpt'] }}</div>
             <div class="card-foot">
@@ -11236,47 +11252,6 @@ INDEX_TEMPLATE = """
 </body></html>
 """
 
-HOME_TEMPLATE = """
-<!DOCTYPE html>
-<html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>XRP Complete Blog</title><style>""" + BASE_CSS + """
-.cur-media { width: 100%; aspect-ratio: 16 / 9; background: #05070c; position: relative;
-  overflow: hidden; border: 1px solid var(--line); margin-bottom: 26px; }
-.cur-media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
-.cur-media.empty { display: flex; align-items: center; justify-content: center; color: var(--muted);
-  font-family: var(--mn); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; }
-</style></head><body>
-<div class="shell">
-""" + HEADER_BLOCK + """
-<div class="layout">
-""" + sidebar_html() + """
-  <main class="content">
-    {% if post %}
-    <div class="section-head" style="justify-content:flex-end;">
-      <a class="section-link" href="{{ url_for('archive') }}">View Archive &rarr;</a>
-    </div>
-    {% if post['thumb'] %}
-    <div class="cur-media"><img src="{{ url_for('uploaded_file', filename=post['thumb']) }}" alt=""></div>
-    {% else %}
-    <div class="cur-media empty">No image</div>
-    {% endif %}
-    <div class="article-head">
-      <div class="category-tag">{{ post['category'] }}</div>
-      <h1>{{ post['title'] }}</h1>
-      <div class="meta">{{ post['created_at'] }} &middot; {{ post['read_min'] }} min read</div>
-      <div class="article-rule"></div>
-    </div>
-    <div class="post-content">{{ rendered_content|safe }}</div>
-    {% else %}
-    <p class="meta">No posts found.</p>
-    {% endif %}
-  </main>
-</div>
-</div>
-""" + FOOTER_BLOCK + """
-</body></html>
-"""
-
 POST_TEMPLATE = """
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
@@ -11288,7 +11263,7 @@ POST_TEMPLATE = """
   <main class="content">
     <div class="article-head">
       <a class="btn secondary small" href="{{ url_for('index') }}">&larr; All briefings</a>
-      <div class="category-tag" style="margin-top:16px;">{{ post['category'] }}</div>
+      <div class="category-tag" style="margin-top:16px; --cat:{{ cat_accent(post['category']) }}; --cat-tint:{{ cat_tint(post['category']) }};">{{ post['category'] }}</div>
       <h1>{{ post['title'] }}</h1>
       <div class="meta">{{ post['created_at'] }}</div>
       <div class="article-rule"></div>
@@ -11311,14 +11286,17 @@ LOGIN_TEMPLATE = """
 <title>Admin Login \u2014 XRP Complete Blog</title><style>""" + BASE_CSS + """</style></head><body>
 <div class="shell">
 """ + HEADER_BLOCK + """
-<div style="max-width:400px; margin:40px auto; padding:0 20px;">
-  <h1>Admin Login</h1>
-  {% if error %}<div class="flash" style="color:#ff4d4f;">{{ error }}</div>{% endif %}
-  <form method="post">
-    <label>Password</label>
-    <input type="password" name="password" autofocus>
-    <button class="btn" type="submit">Log in</button>
-  </form>
+<div style="max-width:400px; margin:56px auto; padding:0 20px;">
+  <div class="sb-panel" style="padding:28px;">
+    <div class="page-eyebrow">Restricted</div>
+    <h1 style="font-size:24px;">Admin Login</h1>
+    {% if error %}<div class="flash" style="color:#ff4d4f; border-color:rgba(193,68,74,0.35); background:rgba(193,68,74,0.1);">{{ error }}</div>{% endif %}
+    <form method="post">
+      <label>Password</label>
+      <input type="password" name="password" autofocus>
+      <button class="btn" type="submit" style="width:100%;">Log in</button>
+    </form>
+  </div>
 </div>
 </div>
 """ + FOOTER_BLOCK + """
@@ -11341,27 +11319,30 @@ ADMIN_TEMPLATE = """
   </div>
   {% if flash_msg %}<div class="flash">{{ flash_msg }}</div>{% endif %}
 
-  <h2>New Post</h2>
-  <form method="post" action="{{ url_for('admin_new_post') }}" enctype="multipart/form-data">
-    <label>Title</label>
-    <input type="text" name="title" required>
-    <label>Category</label>
-    <input type="text" name="category" value="General">
-    <label>Excerpt (shown on the blog homepage)</label>
-    <input type="text" name="excerpt">
-    <label>Images (optional \u2014 upload, then reference in content as {{ '{{img:filename.jpg}}' }})</label>
-    <input type="file" name="images" multiple accept="image/png,image/jpeg,image/gif,image/webp">
-    <div class="hint">Use the exact filename you're uploading, e.g. {{ '{{img:chart.png}}' }}, anywhere in the content below.</div>
-    <label>Content</label>
-    <textarea name="content" required></textarea>
-    <div class="row">
-      <button class="btn" type="submit" name="publish" value="1">Publish</button>
-      <button class="btn secondary" type="submit" name="publish" value="0">Save as Draft</button>
-      <a href="{{ url_for('index') }}" class="btn secondary" style="text-decoration:none;display:inline-flex;align-items:center;">\u2190 Return to Blog</a>
-    </div>
-  </form>
+  <div class="sb-panel" style="padding:26px;">
+    <h2 style="margin-top:0;">New Post</h2>
+    <form method="post" action="{{ url_for('admin_new_post') }}" enctype="multipart/form-data">
+      <label>Title</label>
+      <input type="text" name="title" required>
+      <label>Category</label>
+      <input type="text" name="category" value="General">
+      <label>Excerpt (shown on the blog homepage)</label>
+      <input type="text" name="excerpt">
+      <label>Images (optional \u2014 upload, then reference in content as {{ '{{img:filename.jpg}}' }})</label>
+      <input type="file" name="images" multiple accept="image/png,image/jpeg,image/gif,image/webp">
+      <div class="hint">Use the exact filename you're uploading, e.g. {{ '{{img:chart.png}}' }}, anywhere in the content below.</div>
+      <label>Content</label>
+      <textarea name="content" required></textarea>
+      <div class="row">
+        <button class="btn" type="submit" name="publish" value="1">Publish</button>
+        <button class="btn secondary" type="submit" name="publish" value="0">Save as Draft</button>
+        <a href="{{ url_for('index') }}" class="btn secondary" style="text-decoration:none;display:inline-flex;align-items:center;">\u2190 Return to Blog</a>
+      </div>
+    </form>
+  </div>
 
   <h2 style="margin-top:40px;">All Posts</h2>
+  <div class="sb-panel" style="padding:8px 20px;">
   <table>
     <tr><th>Title</th><th>Category</th><th>Status</th><th>Created</th><th>Actions</th></tr>
     {% for p in posts %}
@@ -11382,6 +11363,7 @@ ADMIN_TEMPLATE = """
     </tr>
     {% endfor %}
   </table>
+  </div>
 </div>
 </div>
 """ + FOOTER_BLOCK + """
@@ -11398,37 +11380,39 @@ EDIT_TEMPLATE = """
   <a class="btn secondary small" href="{{ url_for('admin') }}">&larr; Back to admin</a>
   <h1 style="margin-top:20px;">Edit Post</h1>
 
-  <label>Existing Images</label>
-  <div class="hint">The first image in this list is used as the post's thumbnail on the blog. Delete moves the next one up.</div>
-  <div style="display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 16px;">
-    {% for img in images %}
-    <div style="width:110px;">
-      <img src="{{ url_for('uploaded_file', filename=img['filename']) }}" alt=""
-           style="width:110px;height:110px;object-fit:cover;border-radius:6px;border:1px solid var(--line);display:block;">
-      <div style="font-size:11px;color:var(--muted);word-break:break-all;margin:4px 0;">{{ img['filename'] }}</div>
-      <form method="post" action="{{ url_for('admin_delete_image', post_id=post['id'], image_id=img['id']) }}"
-            onsubmit="return confirm('Delete this image?');">
-        <button class="btn secondary small" type="submit" style="width:100%;color:#ff4060;border-color:#ff4060;">Delete</button>
-      </form>
+  <div class="sb-panel" style="padding:26px;">
+    <label>Existing Images</label>
+    <div class="hint">The first image in this list is used as the post's thumbnail on the blog. Delete moves the next one up.</div>
+    <div style="display:flex;flex-wrap:wrap;gap:12px;margin:8px 0 16px;">
+      {% for img in images %}
+      <div style="width:110px;">
+        <img src="{{ url_for('uploaded_file', filename=img['filename']) }}" alt=""
+             style="width:110px;height:110px;object-fit:cover;border-radius:6px;border:1px solid var(--line);display:block;">
+        <div style="font-size:11px;color:var(--muted);word-break:break-all;margin:4px 0;">{{ img['filename'] }}</div>
+        <form method="post" action="{{ url_for('admin_delete_image', post_id=post['id'], image_id=img['id']) }}"
+              onsubmit="return confirm('Delete this image?');">
+          <button class="btn secondary small" type="submit" style="width:100%;color:#ff4060;border-color:#ff4060;">Delete</button>
+        </form>
+      </div>
+      {% else %}
+      <span class="hint">None uploaded</span>
+      {% endfor %}
     </div>
-    {% else %}
-    <span class="hint">None uploaded</span>
-    {% endfor %}
-  </div>
 
-  <form method="post" enctype="multipart/form-data">
-    <label>Title</label>
-    <input type="text" name="title" value="{{ post['title'] }}" required>
-    <label>Category</label>
-    <input type="text" name="category" value="{{ post['category'] }}">
-    <label>Excerpt</label>
-    <input type="text" name="excerpt" value="{{ post['excerpt'] or '' }}">
-    <label>Add More Images (optional)</label>
-    <input type="file" name="images" multiple accept="image/png,image/jpeg,image/gif,image/webp">
-    <label>Content</label>
-    <textarea name="content" required>{{ post['content'] }}</textarea>
-    <button class="btn" type="submit">Save Changes</button>
-  </form>
+    <form method="post" enctype="multipart/form-data">
+      <label>Title</label>
+      <input type="text" name="title" value="{{ post['title'] }}" required>
+      <label>Category</label>
+      <input type="text" name="category" value="{{ post['category'] }}">
+      <label>Excerpt</label>
+      <input type="text" name="excerpt" value="{{ post['excerpt'] or '' }}">
+      <label>Add More Images (optional)</label>
+      <input type="file" name="images" multiple accept="image/png,image/jpeg,image/gif,image/webp">
+      <label>Content</label>
+      <textarea name="content" required>{{ post['content'] }}</textarea>
+      <button class="btn" type="submit">Save Changes</button>
+    </form>
+  </div>
 </div>
 </div>
 """ + FOOTER_BLOCK + """
@@ -11579,15 +11563,18 @@ def info_page():
 
 @app.route("/")
 def index():
+    """v63 — the homepage is now a true magazine front page (one featured
+    lead story + a grid of recent briefings) instead of the single latest
+    post shown in full. Reuses INDEX_TEMPLATE's existing featured_layout
+    mode rather than a separate template."""
     db = get_db()
     visitor_count = bump_visitor_count(db)
-    latest = attach_thumbnails(db, db.execute(
-        "SELECT * FROM posts WHERE published = 1 ORDER BY id DESC LIMIT 1").fetchall())
-    post = latest[0] if latest else None
-    rendered = render_content(post["content"]) if post else ""
+    posts = attach_thumbnails(db, db.execute(
+        "SELECT * FROM posts WHERE published = 1 ORDER BY id DESC LIMIT 7").fetchall())
     recent_posts, categories = sidebar_context(db)
     return render_template_string(
-        HOME_TEMPLATE, post=post, rendered_content=rendered, nav_page="home",
+        INDEX_TEMPLATE, posts=posts, heading="Latest Intelligence", nav_page="home",
+        featured_layout=True,
         recent_posts=recent_posts, categories=categories, **footer_ctx(db, visitor_count)
     )
 
@@ -11661,6 +11648,26 @@ def search():
         subheading=f"{len(posts)} result(s).",
         recent_posts=recent_posts, categories=categories, query=q, **footer_ctx(db)
     )
+
+
+@app.route("/subscribe", methods=["POST"])
+def subscribe():
+    """v63 — wires the existing (previously unused) subscribers table up to
+    a real sidebar/footer signup form. Silently ignores duplicate emails."""
+    email = (request.form.get("email") or "").strip().lower()
+    referer = request.referrer or url_for("index")
+    valid = bool(re.match(r"^[^@\s]+@[^@\s]+\.[^@\s]+$", email))
+    if not valid:
+        sep = "&" if "?" in referer else "?"
+        return redirect(f"{referer}{sep}sub=err#subscribe")
+    db = get_db()
+    db.execute(
+        "INSERT OR IGNORE INTO subscribers (email, created_at) VALUES (?, ?)",
+        (email, datetime.utcnow().isoformat()),
+    )
+    db.commit()
+    sep = "&" if "?" in referer else "?"
+    return redirect(f"{referer}{sep}sub=ok#subscribe")
 
 
 @app.route("/post/<slug>")
