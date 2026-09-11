@@ -25,7 +25,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v66"
+APP_VERSION = "v67"
 LAST_UPDATED_DATE = "September 11, 2026"
 LAST_UPDATED_TIME_UTC = "7:00 PM UTC"
 LAST_UPDATED_TIME_CT = "2:00 PM CDT"
@@ -318,7 +318,7 @@ nav.top-nav {
 .nav-brand-col { display: flex; flex-direction: column; line-height: 1.1; }
 .nav-brand-name { color: #fff; font-weight: 700; font-size: 16px; letter-spacing: 0.2px; font-family: var(--sans); }
 .nav-brand-name .nb-lite { color: #fff; font-weight: 600; }
-.nav-brand-sub { color: #E0447C; font-family: var(--mn); font-size: 8.5px; letter-spacing: 2.4px; text-transform: uppercase; margin-top: 3px; }
+.nav-brand-sub { color: #fff; font-family: var(--mn); font-size: 8.5px; letter-spacing: 2.4px; text-transform: uppercase; margin-top: 3px; }
 .nav-links { display: flex; align-items: center; gap: 32px; }
 .nav-links a {
     color: var(--muted); text-decoration: none;
@@ -798,7 +798,7 @@ footer.site-footer {
 .foot-id-col { display: flex; flex-direction: column; line-height: 1.15; }
 .foot-brand { color: var(--text); font-weight: 700; font-size: 13.5px; letter-spacing: 0.2px; font-family: var(--sans); font-style: normal; }
 .foot-brand .nb-lite { color: var(--hdr); }
-.foot-sub { color: #E0447C; font-family: var(--mn); font-size: 8px; letter-spacing: 2.2px; text-transform: uppercase; margin-top: 2px; }
+.foot-sub { color: #fff; font-family: var(--mn); font-size: 8px; letter-spacing: 2.2px; text-transform: uppercase; margin-top: 2px; }
 .foot-tagline { color: #8592A8; font-size: 13px; line-height: 1.6; margin: 0; max-width: 260px; }
 .foot-col-title {
     color: #fff; font-size: 10px; text-transform: uppercase; letter-spacing: 1.8px; font-weight: 600;
