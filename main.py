@@ -25,7 +25,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v71"
+APP_VERSION = "v73"
 LAST_UPDATED_DATE = "September 11, 2026"
 LAST_UPDATED_TIME_UTC = "7:00 PM UTC"
 LAST_UPDATED_TIME_CT = "2:00 PM CDT"
@@ -50,15 +50,15 @@ START_TIME = time.time()
 # across a page rather than random on every render.
 CATEGORY_PALETTE = {
     "Markets": "#2F9BFF",
-    "Legislation": "#C6952E",
-    "Regulatory": "#C6952E",
+    "Legislation": "#E0447C",
+    "Regulatory": "#E0447C",
     "Institutional": "#3F8F6E",
     "Technology": "#6C7BD1",
     "XRPL": "#6C7BD1",
     "Community": "#B65C8C",
     "General": "#8992A6",
 }
-_ACCENT_FALLBACKS = ["#2F9BFF", "#C6952E", "#3F8F6E", "#6C7BD1", "#B65C8C"]
+_ACCENT_FALLBACKS = ["#2F9BFF", "#E0447C", "#3F8F6E", "#6C7BD1", "#B65C8C"]
 
 
 def category_accent(category):
@@ -258,7 +258,7 @@ BASE_CSS = """
     --navy: #1A2942;
     --xrp: #008CFF;
     --hdr: #2F9BFF;
-    --tq: #C6952E;
+    --tq: #E0447C;
     --emerald: #3F8F6E;
     --rose: #B65C8C;
     --indigo: #6C7BD1;
@@ -377,13 +377,13 @@ header.site-header {
 .mast-bg { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
 .mast-bg img {
     width: 100%; height: 100%; object-fit: cover; object-position: 68% 42%;
-    display: block; opacity: 0.92; filter: saturate(0.9) brightness(1);
+    display: block; opacity: 0.97; filter: saturate(0.95) brightness(1.1);
 }
 .mast-scrim {
     position: absolute; inset: 0; z-index: 1; pointer-events: none;
     background:
-        linear-gradient(100deg, rgba(5,7,10,0.97) 0%, rgba(5,7,10,0.90) 38%, rgba(5,7,10,0.42) 66%, rgba(5,7,10,0.55) 100%),
-        linear-gradient(180deg, rgba(0,0,0,0.10) 0%, transparent 34%, rgba(0,0,0,0.55) 100%);
+        linear-gradient(100deg, rgba(5,7,10,0.90) 0%, rgba(5,7,10,0.80) 38%, rgba(5,7,10,0.30) 66%, rgba(5,7,10,0.40) 100%),
+        linear-gradient(180deg, rgba(0,0,0,0.08) 0%, transparent 34%, rgba(0,0,0,0.42) 100%);
 }
 .hdr-left-block { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; gap: 0; max-width: 620px; }
 .hero-eyebrow {
@@ -15914,7 +15914,7 @@ FOOTER_BLOCK = """
       <span class="foot-id">
         <img src="/static/helix.jpg?v={{ version }}" alt="XRP Complete">
         <span class="foot-id-col">
-          <span class="foot-brand">XRP <span class="nb-lite">COMPLETE</span> BLOG</span>
+          <span class="foot-brand">XRP <span class="nb-lite">COMPLETE</span></span>
           <span class="foot-sub">Intelligence Network</span>
         </span>
       </span>
@@ -15954,18 +15954,11 @@ FOOTER_BLOCK = """
 """
 
 HEADER_BLOCK = '''
-<div class="util-bar">
-  <span class="util-left"><span class="is-src-dot"></span>''' + GLOBAL_SOURCES + ''' Global Sources Monitored <span class="util-sep">&middot;</span> Not Financial Advice</span>
-  <span class="util-right">
-    <span class="live-badge"><span class="live-dot"></span>LIVE</span>
-    <span class="util-sep">&middot;</span> Build {{ version }} <span class="util-sep">&middot;</span> Updated {{ last_updated_date }}
-  </span>
-</div>
 <nav class="top-nav">
   <a class="nav-brand" href="/">
     <img src="/static/helix.jpg?v={{ version }}" alt="XRP Complete">
     <span class="nav-brand-col">
-      <span class="nav-brand-name">XRP <span class="nb-lite">COMPLETE</span> BLOG</span>
+      <span class="nav-brand-name">XRP <span class="nb-lite">COMPLETE</span></span>
       <span class="nav-brand-sub">Intelligence Network</span>
     </span>
   </a>
@@ -15982,6 +15975,12 @@ HEADER_BLOCK = '''
     </button>
   </form>
 </nav>
+<div class="util-bar">
+  <span class="util-left"><span class="is-src-dot"></span>''' + GLOBAL_SOURCES + ''' Global Sources Monitored <span class="util-sep">&middot;</span> Not Financial Advice</span>
+  <span class="util-right">
+    <span class="live-badge"><span class="live-dot"></span>LIVE</span>
+  </span>
+</div>
 <header class="site-header">
   <div class="mast-bg"><img src="data:image/jpeg;base64,''' + ASTRONAUT_IMAGE_B64 + '''" alt=""></div>
   <div class="mast-scrim"></div>
