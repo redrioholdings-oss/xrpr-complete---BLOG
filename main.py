@@ -25,7 +25,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v64"
+APP_VERSION = "v65"
 LAST_UPDATED_DATE = "September 11, 2026"
 LAST_UPDATED_TIME_UTC = "7:00 PM UTC"
 LAST_UPDATED_TIME_CT = "2:00 PM CDT"
@@ -317,7 +317,7 @@ nav.top-nav {
 .nav-brand img { height: 34px; width: auto; display: block; border-radius: 5px; }
 .nav-brand-col { display: flex; flex-direction: column; line-height: 1.1; }
 .nav-brand-name { color: #fff; font-weight: 700; font-size: 16px; letter-spacing: 0.2px; font-family: var(--sans); }
-.nav-brand-name .nb-lite { color: var(--hdr); font-weight: 600; }
+.nav-brand-name .nb-lite { color: #fff; font-weight: 600; }
 .nav-brand-sub { color: #E0447C; font-family: var(--mn); font-size: 8.5px; letter-spacing: 2.4px; text-transform: uppercase; margin-top: 3px; }
 .nav-links { display: flex; align-items: center; gap: 32px; }
 .nav-links a {
@@ -388,7 +388,7 @@ header.site-header {
 .hdr-left-block { position: relative; z-index: 2; display: flex; flex-direction: column; justify-content: center; gap: 0; max-width: 620px; }
 .hero-eyebrow {
     font-family: var(--mn); font-size: 10.5px; letter-spacing: 3.6px; text-transform: uppercase;
-    color: var(--tq); margin-bottom: 18px;
+    color: #E0447C; margin-bottom: 18px;
 }
 .hero-title {
     color: #fff; font-size: 44px; font-weight: 600; line-height: 1.1; letter-spacing: -0.3px;
@@ -11073,7 +11073,7 @@ HEADER_BLOCK = '''
   <div class="mast-scrim"></div>
   <div class="hdr-left-block">
     <div class="hero-eyebrow">XRP Complete Blog</div>
-    <h1 class="hero-title">The XRP Intelligence<br>Standard</h1>
+    <h1 class="hero-title">The <em>NEW</em> XRP Intelligence<br>Standard BLOG</h1>
     <p class="hero-sub">Real-time intelligence, deep analysis, and institutional insights on the XRP Ledger and the future of finance.</p>
     <div class="hero-coverage">
       <span>Real-Time Intelligence</span><span class="hc-dot">&middot;</span>
