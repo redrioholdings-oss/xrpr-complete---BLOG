@@ -25,7 +25,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v76"
+APP_VERSION = "v77"
 LAST_UPDATED_DATE = "September 11, 2026"
 LAST_UPDATED_TIME_UTC = "7:00 PM UTC"
 LAST_UPDATED_TIME_CT = "2:00 PM CDT"
@@ -417,6 +417,16 @@ header.site-header {
     transition: box-shadow 0.15s ease, transform 0.15s ease;
 }
 .cta-primary:hover { box-shadow: 0 8px 26px rgba(47,155,255,0.4); transform: translateY(-1px); }
+.cta-allposts {
+    display: inline-flex; align-items: center; gap: 8px;
+    background: #fff; color: #008CFF;
+    font-weight: 700; font-size: 13.5px; letter-spacing: 0.2px;
+    font-family: var(--sans);
+    padding: 14px 40px; border-radius: 7px; text-decoration: none;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.2);
+    transition: box-shadow 0.15s ease, transform 0.15s ease;
+}
+.cta-allposts:hover { box-shadow: 0 8px 26px rgba(0,0,0,0.3); transform: translateY(-1px); }
 .visit-btn {
     display: inline-flex;
     align-items: center;
@@ -16000,6 +16010,7 @@ HEADER_BLOCK = '''
     <div class="cta-row">
       <a class="cta-primary" href="/#briefings">Latest Briefing &rarr;</a>
       <a class="visit-btn" href="https://xrpcomplete.com" target="_blank" rel="noopener">Visit XRPComplete.com</a>
+      <a class="cta-allposts" href="{{ url_for('archive') }}">All Stories &amp; Posts &rarr;</a>
     </div>
   </div>
   <a class="hero-badge" href="https://xrpcomplete.com" target="_blank" rel="noopener" aria-label="Visit XRPComplete.com">
@@ -16547,8 +16558,9 @@ def archive():
     posts = attach_thumbnails(db, db.execute("SELECT * FROM posts WHERE published = 1 ORDER BY id DESC").fetchall())
     recent_posts, categories = sidebar_context(db)
     return render_template_string(
-        INDEX_TEMPLATE, posts=posts, heading="Briefing Archive",
-        subheading="Every published briefing, newest first.", featured_layout=False,
+        INDEX_TEMPLATE, posts=posts, heading="All Stories & Posts",
+        subheading="Every post, briefing, story, and entry published on this blog \u2014 newest first.",
+        featured_layout=False,
         recent_posts=recent_posts, categories=categories, **footer_ctx(db, visitor_count)
     )
 
