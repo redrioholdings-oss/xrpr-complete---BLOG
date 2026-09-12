@@ -25,7 +25,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v77"
+APP_VERSION = "v78"
 LAST_UPDATED_DATE = "September 11, 2026"
 LAST_UPDATED_TIME_UTC = "7:00 PM UTC"
 LAST_UPDATED_TIME_CT = "2:00 PM CDT"
@@ -418,7 +418,8 @@ header.site-header {
 }
 .cta-primary:hover { box-shadow: 0 8px 26px rgba(47,155,255,0.4); transform: translateY(-1px); }
 .cta-allposts {
-    display: inline-flex; align-items: center; gap: 8px;
+    display: flex; align-items: center; justify-content: flex-start; gap: 8px;
+    width: 100%; box-sizing: border-box; margin-top: 14px;
     background: #fff; color: #008CFF;
     font-weight: 700; font-size: 13.5px; letter-spacing: 0.2px;
     font-family: var(--sans);
@@ -16010,8 +16011,8 @@ HEADER_BLOCK = '''
     <div class="cta-row">
       <a class="cta-primary" href="/#briefings">Latest Briefing &rarr;</a>
       <a class="visit-btn" href="https://xrpcomplete.com" target="_blank" rel="noopener">Visit XRPComplete.com</a>
-      <a class="cta-allposts" href="{{ url_for('archive') }}">All Stories &amp; Posts &rarr;</a>
     </div>
+    <a class="cta-allposts" href="{{ url_for('archive') }}">All Stories &amp; Posts &rarr;</a>
   </div>
   <a class="hero-badge" href="https://xrpcomplete.com" target="_blank" rel="noopener" aria-label="Visit XRPComplete.com">
     <img src="/static/xrp-complete-logo.png?v={{ version }}" alt="XRPComplete.com">
