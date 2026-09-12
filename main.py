@@ -25,7 +25,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v80"
+APP_VERSION = "v81"
 LAST_UPDATED_DATE = "September 11, 2026"
 LAST_UPDATED_TIME_UTC = "7:00 PM UTC"
 LAST_UPDATED_TIME_CT = "2:00 PM CDT"
@@ -419,7 +419,7 @@ header.site-header {
 }
 .cta-primary:hover { box-shadow: 0 8px 26px rgba(47,155,255,0.4); transform: translateY(-1px); }
 .cta-allposts {
-    display: flex; align-items: center; justify-content: flex-start; gap: 8px;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
     box-sizing: border-box;
     background: #fff; color: #008CFF;
     font-weight: 700; font-size: 13.5px; letter-spacing: 0.2px;
