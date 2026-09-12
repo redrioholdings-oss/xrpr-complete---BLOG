@@ -25,7 +25,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v78"
+APP_VERSION = "v80"
 LAST_UPDATED_DATE = "September 11, 2026"
 LAST_UPDATED_TIME_UTC = "7:00 PM UTC"
 LAST_UPDATED_TIME_CT = "2:00 PM CDT"
@@ -406,6 +406,7 @@ header.site-header {
 }
 .hero-coverage span:not(.hc-dot) { white-space: nowrap; }
 .hero-coverage .hc-dot { color: var(--tq); margin: 0 7px; }
+.cta-stack { display: grid; grid-template-columns: max-content; gap: 14px; }
 .cta-row { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 .cta-primary {
     display: inline-flex; align-items: center; gap: 8px;
@@ -419,7 +420,7 @@ header.site-header {
 .cta-primary:hover { box-shadow: 0 8px 26px rgba(47,155,255,0.4); transform: translateY(-1px); }
 .cta-allposts {
     display: flex; align-items: center; justify-content: flex-start; gap: 8px;
-    width: 100%; box-sizing: border-box; margin-top: 14px;
+    box-sizing: border-box;
     background: #fff; color: #008CFF;
     font-weight: 700; font-size: 13.5px; letter-spacing: 0.2px;
     font-family: var(--sans);
@@ -16008,11 +16009,13 @@ HEADER_BLOCK = '''
       <span>Institutional Adoption</span><span class="hc-dot">&middot;</span>
       <span>XRPL&nbsp;Ecosystem</span>
     </div>
-    <div class="cta-row">
-      <a class="cta-primary" href="/#briefings">Latest Briefing &rarr;</a>
-      <a class="visit-btn" href="https://xrpcomplete.com" target="_blank" rel="noopener">Visit XRPComplete.com</a>
+    <div class="cta-stack">
+      <div class="cta-row">
+        <a class="cta-primary" href="/#briefings">Latest Briefing &rarr;</a>
+        <a class="visit-btn" href="https://xrpcomplete.com" target="_blank" rel="noopener">Visit XRPComplete.com</a>
+      </div>
+      <a class="cta-allposts" href="{{ url_for('archive') }}">All Stories &amp; Posts &rarr;</a>
     </div>
-    <a class="cta-allposts" href="{{ url_for('archive') }}">All Stories &amp; Posts &rarr;</a>
   </div>
   <a class="hero-badge" href="https://xrpcomplete.com" target="_blank" rel="noopener" aria-label="Visit XRPComplete.com">
     <img src="/static/xrp-complete-logo.png?v={{ version }}" alt="XRPComplete.com">
