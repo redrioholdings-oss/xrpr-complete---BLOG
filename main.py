@@ -754,6 +754,41 @@ section.ad-strip {
 .ad-strip-slot { display: inline-block; max-width: 420px; width: 100%; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
 .ad-strip-slot img { width: 100%; height: auto; display: block; }
 
+/* ── RSS FEATURE BOX ────────────────────────────────────────── */
+section.rss-feature {
+    display: flex; align-items: center; gap: 18px;
+    margin: 16px 24px 0;
+    background: var(--panel);
+    border: 1px solid var(--line-soft);
+    border-radius: 12px;
+    padding: 20px 24px;
+}
+.rss-feature-ico {
+    flex: 0 0 auto;
+    width: 42px; height: 42px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(47,155,255,0.10); border: 1px solid var(--line);
+}
+.rss-feature-ico svg { width: 20px; height: 20px; stroke: var(--hdr); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.rss-feature-body { flex: 1 1 auto; min-width: 0; }
+.rss-feature-title {
+    color: #fff; font-size: 13px; font-weight: 700; letter-spacing: 0.4px;
+    text-transform: uppercase; font-family: var(--sans); margin-bottom: 4px;
+}
+.rss-feature-copy { color: var(--muted); font-size: 13px; line-height: 1.5; font-family: var(--sans); }
+.rss-feature-btn {
+    flex: 0 0 auto;
+    font-family: var(--mn); font-size: 11px; letter-spacing: 0.8px; text-transform: uppercase;
+    color: var(--hdr); border: 1px solid var(--hdr); border-radius: 8px;
+    padding: 9px 16px; text-decoration: none; white-space: nowrap;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+.rss-feature-btn:hover { background: var(--hdr); color: #05070a; }
+@media (max-width: 560px) {
+    section.rss-feature { flex-wrap: wrap; }
+    .rss-feature-btn { width: 100%; text-align: center; }
+}
+
 /* ── INFO PAGES ─────────────────────────────────────────────── */
 .info-wrap { max-width: 880px; margin: 0 auto; padding: 40px 24px 64px; }
 .info-body { font-family: var(--sans); font-size: 16px; line-height: 1.8; color: #DCE2ED; }
@@ -15909,6 +15944,16 @@ def _network_status_rows():
 
 
 FOOTER_BLOCK = """
+<section class="rss-feature">
+  <div class="rss-feature-ico">
+    <svg viewBox="0 0 24 24"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1.5" fill="currentColor" stroke="none"></circle></svg>
+  </div>
+  <div class="rss-feature-body">
+    <div class="rss-feature-title">Subscribe via RSS</div>
+    <div class="rss-feature-copy">Get every new briefing the moment it's published \\u2014 drop the feed into Feedly, SmartRSS, or your reader of choice.</div>
+  </div>
+  <a class="rss-feature-btn" href="/feed.xml" target="_blank" rel="noopener">View Feed</a>
+</section>
 <section class="ad-strip">
   <div class="ad-strip-label">Sponsored</div>
   <a class="ad-strip-slot" href="https://xrpcomplete.com" target="_blank" rel="noopener">
@@ -16136,7 +16181,9 @@ def attach_thumbnails(db, posts):
 INDEX_TEMPLATE = """
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>XRP Complete Blog</title><style>""" + BASE_CSS + """</style></head><body>
+<title>XRP Complete Blog</title>
+<link rel="alternate" type="application/rss+xml" title="XRP Complete Blog RSS Feed" href="/feed.xml">
+<style>""" + BASE_CSS + """</style></head><body>
 <div class="shell">
 """ + HEADER_BLOCK + """
 <div class="layout">
@@ -16209,7 +16256,9 @@ INDEX_TEMPLATE = """
 POST_TEMPLATE = """
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ post['title'] }} \u2014 XRP Complete Blog</title><style>""" + BASE_CSS + """</style></head><body>
+<title>{{ post['title'] }} \u2014 XRP Complete Blog</title>
+<link rel="alternate" type="application/rss+xml" title="XRP Complete Blog RSS Feed" href="/feed.xml">
+<style>""" + BASE_CSS + """</style></head><body>
 <div class="shell">
 """ + HEADER_BLOCK + """
 <div class="layout">
@@ -16411,7 +16460,9 @@ def footer_ctx(db, visitor_count=None):
 INFO_TEMPLATE = """
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ page_title }} \u2014 XRP Complete Blog</title><style>""" + BASE_CSS + """</style></head><body>
+<title>{{ page_title }} \u2014 XRP Complete Blog</title>
+<link rel="alternate" type="application/rss+xml" title="XRP Complete Blog RSS Feed" href="/feed.xml">
+<style>""" + BASE_CSS + """</style></head><body>
 <div class="shell">
 """ + HEADER_BLOCK + """
 <div class="info-wrap">
@@ -16637,6 +16688,71 @@ def show_post(slug):
         POST_TEMPLATE, post=post, rendered_content=render_content(post["content"]),
         recent_posts=recent_posts, categories=categories, **footer_ctx(db, visitor_count)
     )
+
+
+SITE_URL = os.environ.get("SITE_URL", "https://xrpcompleteblog.com")
+
+
+def _rss_escape(text):
+    """Strip HTML and escape for safe inclusion in XML text nodes."""
+    text = re.sub(r"(?s)<[^>]+>", " ", text or "")
+    text = re.sub(r"\s+", " ", text).strip()
+    return (
+        text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    )
+
+
+def _rss_pubdate(iso_str):
+    """Best-effort conversion of a stored created_at/updated_at string to
+    RFC 822 format, which RSS requires. Falls back to the current time if
+    the stored value can't be parsed."""
+    for fmt in ("%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"):
+        try:
+            dt = datetime.strptime(iso_str, fmt)
+            return dt.strftime("%a, %d %b %Y %H:%M:%S +0000")
+        except (ValueError, TypeError):
+            continue
+    return datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S +0000")
+
+
+@app.route("/feed.xml")
+@app.route("/rss.xml")
+def rss_feed():
+    """v82 — RSS 2.0 feed of the 30 most recent published posts, so
+    readers and aggregators (Feedly, SmartRSS, etc.) can subscribe."""
+    db = get_db()
+    posts = db.execute(
+        "SELECT * FROM posts WHERE published = 1 ORDER BY id DESC LIMIT 30"
+    ).fetchall()
+
+    items = []
+    for p in posts:
+        link = f"{SITE_URL}/post/{p['slug']}"
+        summary = p["excerpt"] or p["content"]
+        items.append(
+            "  <item>\n"
+            f"    <title>{_rss_escape(p['title'])}</title>\n"
+            f"    <link>{link}</link>\n"
+            f"    <guid isPermaLink=\"true\">{link}</guid>\n"
+            f"    <pubDate>{_rss_pubdate(p['created_at'])}</pubDate>\n"
+            f"    <category>{_rss_escape(p['category'] or 'General')}</category>\n"
+            f"    <description>{_rss_escape(summary)}</description>\n"
+            "  </item>"
+        )
+
+    xml = (
+        '<?xml version="1.0" encoding="UTF-8"?>\n'
+        '<rss version="2.0">\n'
+        "<channel>\n"
+        "  <title>XRP Complete Blog</title>\n"
+        f"  <link>{SITE_URL}</link>\n"
+        "  <description>Latest intelligence, briefings, and analysis from XRP Complete Blog.</description>\n"
+        "  <language>en-us</language>\n"
+        f'  <atom:link href="{SITE_URL}/feed.xml" rel="self" type="application/rss+xml" xmlns:atom="http://www.w3.org/2005/Atom"/>\n'
+        + "\n".join(items) +
+        "\n</channel>\n</rss>"
+    )
+    return Response(xml, mimetype="application/rss+xml")
 
 
 @app.route("/uploads/<path:filename>")
