@@ -4,8 +4,14 @@ import time
 import base64
 import sqlite3
 import uuid
+import concurrent.futures
 from datetime import datetime
 from functools import wraps
+
+try:
+    import feedparser
+except ImportError:
+    feedparser = None
 
 from flask import (
     Flask, request, session, redirect, url_for,
@@ -25,7 +31,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v81"
+APP_VERSION = "v83"
 LAST_UPDATED_DATE = "September 11, 2026"
 LAST_UPDATED_TIME_UTC = "7:00 PM UTC"
 LAST_UPDATED_TIME_CT = "2:00 PM CDT"
@@ -756,38 +762,45 @@ section.ad-strip {
 
 /* ── RSS FEATURE BOX ────────────────────────────────────────── */
 section.rss-feature {
-    display: flex; align-items: center; gap: 18px;
     margin: 16px 24px 0;
     background: var(--panel);
     border: 1px solid var(--line-soft);
     border-radius: 12px;
-    padding: 20px 24px;
+    padding: 18px 22px 20px;
 }
-.rss-feature-ico {
-    flex: 0 0 auto;
-    width: 42px; height: 42px; border-radius: 10px;
-    display: flex; align-items: center; justify-content: center;
-    background: rgba(47,155,255,0.10); border: 1px solid var(--line);
+.rss-feature-head {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 12px;
 }
-.rss-feature-ico svg { width: 20px; height: 20px; stroke: var(--hdr); fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-.rss-feature-body { flex: 1 1 auto; min-width: 0; }
-.rss-feature-title {
-    color: #fff; font-size: 13px; font-weight: 700; letter-spacing: 0.4px;
-    text-transform: uppercase; font-family: var(--sans); margin-bottom: 4px;
+.rss-feature-eyebrow {
+    color: var(--muted); font-family: var(--mn); font-size: 10px;
+    letter-spacing: 2.2px; text-transform: uppercase;
 }
-.rss-feature-copy { color: var(--muted); font-size: 13px; line-height: 1.5; font-family: var(--sans); }
 .rss-feature-btn {
     flex: 0 0 auto;
-    font-family: var(--mn); font-size: 11px; letter-spacing: 0.8px; text-transform: uppercase;
+    font-family: var(--mn); font-size: 10.5px; letter-spacing: 0.6px; text-transform: uppercase;
     color: var(--hdr); border: 1px solid var(--hdr); border-radius: 8px;
-    padding: 9px 16px; text-decoration: none; white-space: nowrap;
+    padding: 6px 12px; text-decoration: none; white-space: nowrap;
     transition: background 0.15s ease, color 0.15s ease;
 }
 .rss-feature-btn:hover { background: var(--hdr); color: #05070a; }
-@media (max-width: 560px) {
-    section.rss-feature { flex-wrap: wrap; }
-    .rss-feature-btn { width: 100%; text-align: center; }
+.rss-feature-list { list-style: none; margin: 0; padding: 0; }
+.rss-feature-list li {
+    border-top: 1px solid var(--line-soft);
+    padding: 10px 0;
 }
+.rss-feature-list li:first-child { border-top: none; padding-top: 0; }
+.rss-feature-list a {
+    color: var(--text); text-decoration: none; font-size: 13.5px; line-height: 1.5;
+    font-family: var(--sans);
+}
+.rss-feature-list a:hover { color: var(--hdr); }
+.rss-feature-source {
+    display: block; margin-top: 3px;
+    color: var(--muted); font-family: var(--mn); font-size: 10px;
+    letter-spacing: 0.6px; text-transform: uppercase;
+}
+.rss-feature-empty { color: var(--muted); font-size: 13px; font-family: var(--sans); }
 
 /* ── INFO PAGES ─────────────────────────────────────────────── */
 .info-wrap { max-width: 880px; margin: 0 auto; padding: 40px 24px 64px; }
@@ -15945,14 +15958,22 @@ def _network_status_rows():
 
 FOOTER_BLOCK = """
 <section class="rss-feature">
-  <div class="rss-feature-ico">
-    <svg viewBox="0 0 24 24"><path d="M4 11a9 9 0 0 1 9 9"></path><path d="M4 4a16 16 0 0 1 16 16"></path><circle cx="5" cy="19" r="1.5" fill="currentColor" stroke="none"></circle></svg>
+  <div class="rss-feature-head">
+    <span class="rss-feature-eyebrow">Latest From The XRP Network</span>
+    <a class="rss-feature-btn" href="/feed.xml" target="_blank" rel="noopener">Our RSS</a>
   </div>
-  <div class="rss-feature-body">
-    <div class="rss-feature-title">Subscribe via RSS</div>
-    <div class="rss-feature-copy">Get every new briefing the moment it's published \\u2014 drop the feed into Feedly, SmartRSS, or your reader of choice.</div>
-  </div>
-  <a class="rss-feature-btn" href="/feed.xml" target="_blank" rel="noopener">View Feed</a>
+  {% if external_headlines %}
+  <ul class="rss-feature-list">
+    {% for h in external_headlines %}
+    <li>
+      <a href="{{ h.link }}" target="_blank" rel="noopener noreferrer">{{ h.title }}</a>
+      <span class="rss-feature-source">{{ h.source }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <div class="rss-feature-empty">Headlines are updating — check back shortly.</div>
+  {% endif %}
 </section>
 <section class="ad-strip">
   <div class="ad-strip-label">Sponsored</div>
@@ -16436,6 +16457,87 @@ def bump_visitor_count(db):
     return current
 
 
+# ----------------------------------------------------------------------
+# EXTERNAL HEADLINES (feature box, v83)
+# ----------------------------------------------------------------------
+# Sources pulled from Rich's SmartRSS subscription export (2026-08-05).
+# Feeds are fetched in a background thread pool with a short timeout each,
+# cached in memory, and refreshed on a TTL so page loads never hang on a
+# slow/dead feed.
+
+EXTERNAL_FEEDS = [
+    ("Ripple", "https://rss.app/feeds/tdOmoyFIPH8XjSLj.xml"),
+    ("XRP", "https://rss.app/feeds/t06IFfo366opxgKr.xml"),
+    ("XRP Cryptocurrency", "https://rss.app/feeds/tjwIrUiE3cG7jAiM.xml"),
+    ("XRP Global", "https://rss.app/feeds/t31fLU3ebJJAjDGz.xml"),
+    ("XRP Partners", "https://rss.app/feeds/t8hGMx3YMwIfRolk.xml"),
+    ("XRP Predictions", "https://rss.app/feeds/tyY7sDljo9hRSRE4.xml"),
+    ("XRP Trading", "https://rss.app/feeds/tYpnWD04RWsklamt.xml"),
+    ("XRP vs Bitcoin", "https://rss.app/feeds/t2OJQSJgRJvmfpMg.xml"),
+    ("XRP vs Ethereum", "https://rss.app/feeds/tJEm0415IpHEBA0o.xml"),
+    ("XRPL", "https://rss.app/feeds/tS3o2xlfnvjXwAXI.xml"),
+]
+
+_HEADLINES_CACHE = {"items": [], "fetched_at": 0}
+_HEADLINES_TTL_SECONDS = 900  # 15 minutes
+_HEADLINES_FETCH_BUDGET = 8   # total seconds allowed for the whole refresh
+
+
+def _fetch_one_feed(label, url):
+    out = []
+    if feedparser is None:
+        return out
+    try:
+        parsed = feedparser.parse(url)
+        for e in parsed.entries[:5]:
+            link = (e.get("link") or "").strip()
+            title = (e.get("title") or "").strip()
+            if not link.lower().startswith(("http://", "https://")) or not title:
+                continue
+            out.append({
+                "title": title,
+                "link": link,
+                "source": label,
+                "sort_key": e.get("published_parsed") or e.get("updated_parsed") or time.gmtime(0),
+            })
+    except Exception:
+        pass
+    return out
+
+
+def _refresh_headlines():
+    items = []
+    if feedparser is None:
+        return items
+    with concurrent.futures.ThreadPoolExecutor(max_workers=len(EXTERNAL_FEEDS)) as ex:
+        futures = {ex.submit(_fetch_one_feed, label, url): label for label, url in EXTERNAL_FEEDS}
+        try:
+            for fut in concurrent.futures.as_completed(futures, timeout=_HEADLINES_FETCH_BUDGET):
+                try:
+                    items.extend(fut.result())
+                except Exception:
+                    continue
+        except concurrent.futures.TimeoutError:
+            pass  # keep whichever feeds finished in time
+    items.sort(key=lambda it: it["sort_key"], reverse=True)
+    return items[:8]
+
+
+def get_external_headlines():
+    """Cached accessor. Refreshes on TTL expiry; on a failed/empty refresh
+    it keeps serving the last good cache rather than showing nothing."""
+    now = time.time()
+    if now - _HEADLINES_CACHE["fetched_at"] > _HEADLINES_TTL_SECONDS:
+        try:
+            fresh = _refresh_headlines()
+            if fresh:
+                _HEADLINES_CACHE["items"] = fresh
+                _HEADLINES_CACHE["fetched_at"] = now
+        except Exception:
+            pass
+    return _HEADLINES_CACHE["items"]
+
+
 def footer_ctx(db, visitor_count=None):
     pub_count = db.execute("SELECT COUNT(*) c FROM posts WHERE published = 1").fetchone()["c"]
     draft_count = db.execute("SELECT COUNT(*) c FROM posts WHERE published = 0").fetchone()["c"]
@@ -16450,6 +16552,7 @@ def footer_ctx(db, visitor_count=None):
         draft_count=draft_count,
         server_time=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
         visitor_count=f"{visitor_count:,}",
+        external_headlines=get_external_headlines(),
     )
 
 
