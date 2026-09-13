@@ -4,14 +4,8 @@ import time
 import base64
 import sqlite3
 import uuid
-import concurrent.futures
 from datetime import datetime
 from functools import wraps
-
-try:
-    import feedparser
-except ImportError:
-    feedparser = None
 
 from flask import (
     Flask, request, session, redirect, url_for,
@@ -31,7 +25,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v83"
+APP_VERSION = "v84"
 LAST_UPDATED_DATE = "September 11, 2026"
 LAST_UPDATED_TIME_UTC = "7:00 PM UTC"
 LAST_UPDATED_TIME_CT = "2:00 PM CDT"
@@ -759,48 +753,6 @@ section.ad-strip {
 }
 .ad-strip-slot { display: inline-block; max-width: 420px; width: 100%; border-radius: 8px; overflow: hidden; border: 1px solid var(--line); }
 .ad-strip-slot img { width: 100%; height: auto; display: block; }
-
-/* ── RSS FEATURE BOX ────────────────────────────────────────── */
-section.rss-feature {
-    margin: 16px 24px 0;
-    background: var(--panel);
-    border: 1px solid var(--line-soft);
-    border-radius: 12px;
-    padding: 18px 22px 20px;
-}
-.rss-feature-head {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 12px;
-}
-.rss-feature-eyebrow {
-    color: var(--muted); font-family: var(--mn); font-size: 10px;
-    letter-spacing: 2.2px; text-transform: uppercase;
-}
-.rss-feature-btn {
-    flex: 0 0 auto;
-    font-family: var(--mn); font-size: 10.5px; letter-spacing: 0.6px; text-transform: uppercase;
-    color: var(--hdr); border: 1px solid var(--hdr); border-radius: 8px;
-    padding: 6px 12px; text-decoration: none; white-space: nowrap;
-    transition: background 0.15s ease, color 0.15s ease;
-}
-.rss-feature-btn:hover { background: var(--hdr); color: #05070a; }
-.rss-feature-list { list-style: none; margin: 0; padding: 0; }
-.rss-feature-list li {
-    border-top: 1px solid var(--line-soft);
-    padding: 10px 0;
-}
-.rss-feature-list li:first-child { border-top: none; padding-top: 0; }
-.rss-feature-list a {
-    color: var(--text); text-decoration: none; font-size: 13.5px; line-height: 1.5;
-    font-family: var(--sans);
-}
-.rss-feature-list a:hover { color: var(--hdr); }
-.rss-feature-source {
-    display: block; margin-top: 3px;
-    color: var(--muted); font-family: var(--mn); font-size: 10px;
-    letter-spacing: 0.6px; text-transform: uppercase;
-}
-.rss-feature-empty { color: var(--muted); font-size: 13px; font-family: var(--sans); }
 
 /* ── INFO PAGES ─────────────────────────────────────────────── */
 .info-wrap { max-width: 880px; margin: 0 auto; padding: 40px 24px 64px; }
@@ -15957,24 +15909,6 @@ def _network_status_rows():
 
 
 FOOTER_BLOCK = """
-<section class="rss-feature">
-  <div class="rss-feature-head">
-    <span class="rss-feature-eyebrow">Latest From The XRP Network</span>
-    <a class="rss-feature-btn" href="/feed.xml" target="_blank" rel="noopener">Our RSS</a>
-  </div>
-  {% if external_headlines %}
-  <ul class="rss-feature-list">
-    {% for h in external_headlines %}
-    <li>
-      <a href="{{ h.link }}" target="_blank" rel="noopener noreferrer">{{ h.title }}</a>
-      <span class="rss-feature-source">{{ h.source }}</span>
-    </li>
-    {% endfor %}
-  </ul>
-  {% else %}
-  <div class="rss-feature-empty">Headlines are updating — check back shortly.</div>
-  {% endif %}
-</section>
 <section class="ad-strip">
   <div class="ad-strip-label">Sponsored</div>
   <a class="ad-strip-slot" href="https://xrpcomplete.com" target="_blank" rel="noopener">
@@ -16202,9 +16136,7 @@ def attach_thumbnails(db, posts):
 INDEX_TEMPLATE = """
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>XRP Complete Blog</title>
-<link rel="alternate" type="application/rss+xml" title="XRP Complete Blog RSS Feed" href="/feed.xml">
-<style>""" + BASE_CSS + """</style></head><body>
+<title>XRP Complete Blog</title><style>""" + BASE_CSS + """</style></head><body>
 <div class="shell">
 """ + HEADER_BLOCK + """
 <div class="layout">
@@ -16277,9 +16209,7 @@ INDEX_TEMPLATE = """
 POST_TEMPLATE = """
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ post['title'] }} \u2014 XRP Complete Blog</title>
-<link rel="alternate" type="application/rss+xml" title="XRP Complete Blog RSS Feed" href="/feed.xml">
-<style>""" + BASE_CSS + """</style></head><body>
+<title>{{ post['title'] }} \u2014 XRP Complete Blog</title><style>""" + BASE_CSS + """</style></head><body>
 <div class="shell">
 """ + HEADER_BLOCK + """
 <div class="layout">
@@ -16457,87 +16387,6 @@ def bump_visitor_count(db):
     return current
 
 
-# ----------------------------------------------------------------------
-# EXTERNAL HEADLINES (feature box, v83)
-# ----------------------------------------------------------------------
-# Sources pulled from Rich's SmartRSS subscription export (2026-08-05).
-# Feeds are fetched in a background thread pool with a short timeout each,
-# cached in memory, and refreshed on a TTL so page loads never hang on a
-# slow/dead feed.
-
-EXTERNAL_FEEDS = [
-    ("Ripple", "https://rss.app/feeds/tdOmoyFIPH8XjSLj.xml"),
-    ("XRP", "https://rss.app/feeds/t06IFfo366opxgKr.xml"),
-    ("XRP Cryptocurrency", "https://rss.app/feeds/tjwIrUiE3cG7jAiM.xml"),
-    ("XRP Global", "https://rss.app/feeds/t31fLU3ebJJAjDGz.xml"),
-    ("XRP Partners", "https://rss.app/feeds/t8hGMx3YMwIfRolk.xml"),
-    ("XRP Predictions", "https://rss.app/feeds/tyY7sDljo9hRSRE4.xml"),
-    ("XRP Trading", "https://rss.app/feeds/tYpnWD04RWsklamt.xml"),
-    ("XRP vs Bitcoin", "https://rss.app/feeds/t2OJQSJgRJvmfpMg.xml"),
-    ("XRP vs Ethereum", "https://rss.app/feeds/tJEm0415IpHEBA0o.xml"),
-    ("XRPL", "https://rss.app/feeds/tS3o2xlfnvjXwAXI.xml"),
-]
-
-_HEADLINES_CACHE = {"items": [], "fetched_at": 0}
-_HEADLINES_TTL_SECONDS = 900  # 15 minutes
-_HEADLINES_FETCH_BUDGET = 8   # total seconds allowed for the whole refresh
-
-
-def _fetch_one_feed(label, url):
-    out = []
-    if feedparser is None:
-        return out
-    try:
-        parsed = feedparser.parse(url)
-        for e in parsed.entries[:5]:
-            link = (e.get("link") or "").strip()
-            title = (e.get("title") or "").strip()
-            if not link.lower().startswith(("http://", "https://")) or not title:
-                continue
-            out.append({
-                "title": title,
-                "link": link,
-                "source": label,
-                "sort_key": e.get("published_parsed") or e.get("updated_parsed") or time.gmtime(0),
-            })
-    except Exception:
-        pass
-    return out
-
-
-def _refresh_headlines():
-    items = []
-    if feedparser is None:
-        return items
-    with concurrent.futures.ThreadPoolExecutor(max_workers=len(EXTERNAL_FEEDS)) as ex:
-        futures = {ex.submit(_fetch_one_feed, label, url): label for label, url in EXTERNAL_FEEDS}
-        try:
-            for fut in concurrent.futures.as_completed(futures, timeout=_HEADLINES_FETCH_BUDGET):
-                try:
-                    items.extend(fut.result())
-                except Exception:
-                    continue
-        except concurrent.futures.TimeoutError:
-            pass  # keep whichever feeds finished in time
-    items.sort(key=lambda it: it["sort_key"], reverse=True)
-    return items[:8]
-
-
-def get_external_headlines():
-    """Cached accessor. Refreshes on TTL expiry; on a failed/empty refresh
-    it keeps serving the last good cache rather than showing nothing."""
-    now = time.time()
-    if now - _HEADLINES_CACHE["fetched_at"] > _HEADLINES_TTL_SECONDS:
-        try:
-            fresh = _refresh_headlines()
-            if fresh:
-                _HEADLINES_CACHE["items"] = fresh
-                _HEADLINES_CACHE["fetched_at"] = now
-        except Exception:
-            pass
-    return _HEADLINES_CACHE["items"]
-
-
 def footer_ctx(db, visitor_count=None):
     pub_count = db.execute("SELECT COUNT(*) c FROM posts WHERE published = 1").fetchone()["c"]
     draft_count = db.execute("SELECT COUNT(*) c FROM posts WHERE published = 0").fetchone()["c"]
@@ -16552,7 +16401,6 @@ def footer_ctx(db, visitor_count=None):
         draft_count=draft_count,
         server_time=datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
         visitor_count=f"{visitor_count:,}",
-        external_headlines=get_external_headlines(),
     )
 
 
@@ -16563,9 +16411,7 @@ def footer_ctx(db, visitor_count=None):
 INFO_TEMPLATE = """
 <!DOCTYPE html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{{ page_title }} \u2014 XRP Complete Blog</title>
-<link rel="alternate" type="application/rss+xml" title="XRP Complete Blog RSS Feed" href="/feed.xml">
-<style>""" + BASE_CSS + """</style></head><body>
+<title>{{ page_title }} \u2014 XRP Complete Blog</title><style>""" + BASE_CSS + """</style></head><body>
 <div class="shell">
 """ + HEADER_BLOCK + """
 <div class="info-wrap">
@@ -16791,71 +16637,6 @@ def show_post(slug):
         POST_TEMPLATE, post=post, rendered_content=render_content(post["content"]),
         recent_posts=recent_posts, categories=categories, **footer_ctx(db, visitor_count)
     )
-
-
-SITE_URL = os.environ.get("SITE_URL", "https://xrpcompleteblog.com")
-
-
-def _rss_escape(text):
-    """Strip HTML and escape for safe inclusion in XML text nodes."""
-    text = re.sub(r"(?s)<[^>]+>", " ", text or "")
-    text = re.sub(r"\s+", " ", text).strip()
-    return (
-        text.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
-    )
-
-
-def _rss_pubdate(iso_str):
-    """Best-effort conversion of a stored created_at/updated_at string to
-    RFC 822 format, which RSS requires. Falls back to the current time if
-    the stored value can't be parsed."""
-    for fmt in ("%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d %H:%M:%S.%f", "%Y-%m-%d %H:%M:%S"):
-        try:
-            dt = datetime.strptime(iso_str, fmt)
-            return dt.strftime("%a, %d %b %Y %H:%M:%S +0000")
-        except (ValueError, TypeError):
-            continue
-    return datetime.utcnow().strftime("%a, %d %b %Y %H:%M:%S +0000")
-
-
-@app.route("/feed.xml")
-@app.route("/rss.xml")
-def rss_feed():
-    """v82 — RSS 2.0 feed of the 30 most recent published posts, so
-    readers and aggregators (Feedly, SmartRSS, etc.) can subscribe."""
-    db = get_db()
-    posts = db.execute(
-        "SELECT * FROM posts WHERE published = 1 ORDER BY id DESC LIMIT 30"
-    ).fetchall()
-
-    items = []
-    for p in posts:
-        link = f"{SITE_URL}/post/{p['slug']}"
-        summary = p["excerpt"] or p["content"]
-        items.append(
-            "  <item>\n"
-            f"    <title>{_rss_escape(p['title'])}</title>\n"
-            f"    <link>{link}</link>\n"
-            f"    <guid isPermaLink=\"true\">{link}</guid>\n"
-            f"    <pubDate>{_rss_pubdate(p['created_at'])}</pubDate>\n"
-            f"    <category>{_rss_escape(p['category'] or 'General')}</category>\n"
-            f"    <description>{_rss_escape(summary)}</description>\n"
-            "  </item>"
-        )
-
-    xml = (
-        '<?xml version="1.0" encoding="UTF-8"?>\n'
-        '<rss version="2.0">\n'
-        "<channel>\n"
-        "  <title>XRP Complete Blog</title>\n"
-        f"  <link>{SITE_URL}</link>\n"
-        "  <description>Latest intelligence, briefings, and analysis from XRP Complete Blog.</description>\n"
-        "  <language>en-us</language>\n"
-        f'  <atom:link href="{SITE_URL}/feed.xml" rel="self" type="application/rss+xml" xmlns:atom="http://www.w3.org/2005/Atom"/>\n'
-        + "\n".join(items) +
-        "\n</channel>\n</rss>"
-    )
-    return Response(xml, mimetype="application/rss+xml")
 
 
 @app.route("/uploads/<path:filename>")
