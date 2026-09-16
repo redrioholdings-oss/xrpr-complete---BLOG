@@ -25,7 +25,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v84"
+APP_VERSION = "v85"
 LAST_UPDATED_DATE = "September 11, 2026"
 LAST_UPDATED_TIME_UTC = "7:00 PM UTC"
 LAST_UPDATED_TIME_CT = "2:00 PM CDT"
@@ -545,6 +545,37 @@ main.content { order: 1; width: 76%; padding: 40px 44px 54px; }
     .layout { flex-direction: column; }
     aside.sidebar, main.content { width: 100%; order: 0; }
     aside.sidebar { border-left: none; border-top: 1px solid var(--line-soft); }
+}
+
+/* ── v85: BLOG TEMPLATE 40-40-20 (homepage) ─────────────────────
+   Left 40% TradingView news · Center 40% briefings · Right 20% sidebar */
+.layout.tv3 aside.tvnews { order: 1; width: 40%; padding: 40px 22px 54px 44px; border-right: 1px solid var(--line-soft); }
+.layout.tv3 main.content { order: 2; width: 40%; padding: 40px 26px 54px; }
+.layout.tv3 aside.sidebar { order: 3; width: 20%; min-width: 0; padding: 32px 20px; }
+.layout.tv3 .brief-grid { grid-template-columns: 1fr; }
+.layout.tv3 .feat-card { flex-direction: column; }
+.layout.tv3 .feat-media { flex-basis: auto; min-height: 220px; }
+.layout.tv3 .feat-media.empty { border-right: none; border-bottom: 1px dashed var(--line); }
+.tvnews .tv-frame { background: var(--panel); border: 1px solid var(--line-soft); border-radius: 10px; padding: 8px; }
+.tvnews .tradingview-widget-container { height: 1200px; width: 100%; }
+.tvnews .tradingview-widget-copyright { font-size: 12px; color: var(--muted); padding: 8px 6px 0; line-height: 16px; }
+.tvnews .tradingview-widget-copyright a { color: var(--hdr); text-decoration: none; }
+@media (max-width: 1024px) {
+    .layout.tv3 { flex-wrap: wrap; }
+    .layout.tv3 aside.tvnews, .layout.tv3 main.content { width: 50%; }
+    .layout.tv3 aside.tvnews { padding: 32px 18px 40px 24px; }
+    .layout.tv3 main.content { padding: 32px 24px 40px 18px; }
+    .layout.tv3 aside.sidebar { width: 100%; border-left: none; border-top: 1px solid var(--line-soft); padding: 28px 24px;
+        display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; align-items: start; }
+    .layout.tv3 aside.sidebar .sb-panel { margin-bottom: 0; }
+}
+@media (max-width: 700px) {
+    .layout.tv3 { flex-direction: column; flex-wrap: nowrap; }
+    .layout.tv3 main.content { order: 1; width: 100%; padding: 28px 18px 32px; }
+    .layout.tv3 aside.tvnews { order: 2; width: 100%; padding: 8px 18px 32px; border-right: none; border-top: 1px solid var(--line-soft); }
+    .layout.tv3 aside.sidebar { order: 3; display: block; }
+    .layout.tv3 aside.sidebar .sb-panel { margin-bottom: 20px; }
+    .tvnews .tradingview-widget-container { height: 640px; }
 }
 
 /* ── HEADINGS / META ────────────────────────────────────────── */
@@ -16139,7 +16170,35 @@ INDEX_TEMPLATE = """
 <title>XRP Complete Blog</title><style>""" + BASE_CSS + """</style></head><body>
 <div class="shell">
 """ + HEADER_BLOCK + """
-<div class="layout">
+<div class="layout{% if tv_news|default(false) %} tv3{% endif %}">
+{% if tv_news|default(false) %}
+  <aside class="tvnews">
+    <div class="section-head">
+      <span class="section-title">Market News</span>
+      <span class="section-link">Crypto &middot; Live</span>
+    </div>
+    <div class="tv-frame">
+      <!-- TradingView Widget BEGIN -->
+      <div class="tradingview-widget-container">
+        <div class="tradingview-widget-container__widget" style="height:calc(100% - 32px);width:100%"></div>
+        <div class="tradingview-widget-copyright"><a href="https://www.tradingview.com/news/top-providers/tradingview/" rel="noopener nofollow" target="_blank"><span class="blue-text">Top stories</span></a><span class="trademark"> by TradingView</span></div>
+        <script type="text/javascript" src="https://s3.tradingview.com/external-embedding/embed-widget-timeline.js" async>
+        {
+        "displayMode": "regular",
+        "feedMode": "market",
+        "market": "crypto",
+        "colorTheme": "dark",
+        "isTransparent": true,
+        "locale": "en",
+        "width": "100%",
+        "height": "100%"
+      }
+        </script>
+      </div>
+      <!-- TradingView Widget END -->
+    </div>
+  </aside>
+{% endif %}
 """ + sidebar_html() + """
   <main class="content" id="briefings">
     {% if featured_layout|default(false) %}
@@ -16528,7 +16587,7 @@ def index():
     recent_posts, categories = sidebar_context(db)
     return render_template_string(
         INDEX_TEMPLATE, posts=posts, heading="Latest Intelligence", nav_page="home",
-        featured_layout=True,
+        featured_layout=True, tv_news=True,  # v85: blog template 40-40-20
         recent_posts=recent_posts, categories=categories, **footer_ctx(db, visitor_count)
     )
 
