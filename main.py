@@ -25,7 +25,7 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp"}
 PORTAL_ALLOWED_EXT = {"png", "jpg", "jpeg", "gif", "webp", "pdf"}
 
-APP_VERSION = "v85"
+APP_VERSION = "v86"
 LAST_UPDATED_DATE = "September 11, 2026"
 LAST_UPDATED_TIME_UTC = "7:00 PM UTC"
 LAST_UPDATED_TIME_CT = "2:00 PM CDT"
@@ -558,6 +558,9 @@ main.content { order: 1; width: 76%; padding: 40px 44px 54px; }
 .layout.tv3 .feat-media.empty { border-right: none; border-bottom: 1px dashed var(--line); }
 .tvnews .tv-frame { background: var(--panel); border: 1px solid var(--line-soft); border-radius: 10px; padding: 8px; }
 .tvnews .tradingview-widget-container { height: 1200px; width: 100%; }
+/* v86: sticky news feed — stays in view, full screen height, while the stories scroll */
+.layout.tv3 .tv-frame { position: sticky; top: 16px; }
+.layout.tv3 .tvnews .tradingview-widget-container { height: calc(100vh - 34px); min-height: 520px; max-height: 1100px; }
 .tvnews .tradingview-widget-copyright { font-size: 12px; color: var(--muted); padding: 8px 6px 0; line-height: 16px; }
 .tvnews .tradingview-widget-copyright a { color: var(--hdr); text-decoration: none; }
 @media (max-width: 1024px) {
@@ -575,7 +578,8 @@ main.content { order: 1; width: 76%; padding: 40px 44px 54px; }
     .layout.tv3 aside.tvnews { order: 2; width: 100%; padding: 8px 18px 32px; border-right: none; border-top: 1px solid var(--line-soft); }
     .layout.tv3 aside.sidebar { order: 3; display: block; }
     .layout.tv3 aside.sidebar .sb-panel { margin-bottom: 20px; }
-    .tvnews .tradingview-widget-container { height: 640px; }
+    .layout.tv3 .tv-frame { position: static; }
+    .layout.tv3 .tvnews .tradingview-widget-container { height: 640px; min-height: 0; }
 }
 
 /* ── HEADINGS / META ────────────────────────────────────────── */
@@ -16583,11 +16587,11 @@ def index():
     db = get_db()
     visitor_count = bump_visitor_count(db)
     posts = attach_thumbnails(db, db.execute(
-        "SELECT * FROM posts WHERE published = 1 ORDER BY id DESC LIMIT 7").fetchall())
+        "SELECT * FROM posts WHERE published = 1 ORDER BY id DESC LIMIT 5").fetchall())
     recent_posts, categories = sidebar_context(db)
     return render_template_string(
         INDEX_TEMPLATE, posts=posts, heading="Latest Intelligence", nav_page="home",
-        featured_layout=True, tv_news=True,  # v85: blog template 40-40-20
+        featured_layout=True, tv_news=True,  # v85: blog template 40-40-20 (v86: lead + 4 stories)
         recent_posts=recent_posts, categories=categories, **footer_ctx(db, visitor_count)
     )
 
