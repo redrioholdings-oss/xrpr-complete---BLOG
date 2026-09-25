@@ -367,7 +367,7 @@ threading.Thread(target=_bg_refresh_market, daemon=True).start()
 threading.Thread(target=_bg_active_addr, daemon=True).start()
 
 
-APP_VERSION = "v94"
+APP_VERSION = "v98"
 LAST_UPDATED_DATE = "September 11, 2026"
 LAST_UPDATED_TIME_UTC = "7:00 PM UTC"
 LAST_UPDATED_TIME_CT = "2:00 PM CDT"
@@ -724,14 +724,17 @@ nav.top-nav {
 .hdr3-logo-1{ left:5.742%; }
 .hdr3-logo-2{ left:18.136%; }
 .hdr3-logo-3{ left:30.530%; }
-/* V90: "Blog" as real typed text (closest-matching bold web font),
-   replacing the handwritten-script composite that was baked into the image */
-.hdr3-blogword{ position:absolute; left:25.0%; top:43.5%; width:21.19%; height:19.68%;
-           display:flex; align-items:flex-start; justify-content:flex-start;
+/* V98: letters stretched horizontally (not spaced apart) to fill the
+   full headline width while keeping height safely clear of the icon
+   row -- matches the mockup's bold/chunky letterforms, not thin letters
+   with big gaps between them. */
+.hdr3-blogword{ position:absolute; left:2.331%; top:43.528%; width:37.500%; height:12.869%;
+           display:flex; align-items:center; justify-content:flex-start; overflow:visible;
            font-family:'Poppins','Inter',-apple-system,system-ui,'Segoe UI',Roboto,Arial,sans-serif;
-           font-weight:800; font-style:italic; font-size:6.2cqw; color:#008CFF;
-           letter-spacing:.01em; line-height:1; border-bottom:.18cqw solid #008CFF;
-           padding-bottom:.1cqw; text-shadow:0 .2cqw .6cqw rgba(0,140,255,.45); }
+           font-weight:800; font-style:normal; font-size:8.81cqw; color:#008CFF;
+           border-top:.17cqw solid #008CFF; border-bottom:.17cqw solid #008CFF;
+           padding:.15cqw 0; line-height:1; text-shadow:0 .15cqw .5cqw rgba(0,140,255,.4); }
+.hdr3-blogword span{ display:inline-block; transform-origin:left center; transform:scaleX(1.531); }
 .hdr3-live-badge{ position:absolute; left:88.729%; top:4.164%; width:8.178%; height:5.299%;
            display:flex; align-items:center; justify-content:center; gap:.6em;
            box-sizing:border-box; border-radius:.5cqw; border:max(1.5px,.14cqw) solid #48ff82;
@@ -26438,7 +26441,7 @@ HEADER_BLOCK = '''
 <div class="hdr3">
   <img class="hdr3-img" src="data:image/jpeg;base64,''' + HERO_BLOG_B64 + '''" alt="XRP Complete Blog - The NEW XRP Intelligence Standard">
   {{ hdr3_cards|safe }}
-  <div class="hdr3-blogword">Blog</div>
+  <div class="hdr3-blogword"><span>BLOG</span></div>
   <a class="hdr3-logo hdr3-logo-1" href="https://xrpcomplete.com" target="_blank" rel="noopener" aria-label="XRPComplete.com"><img src="data:image/png;base64,''' + LOGO_WHITE_B64 + '''" alt="XRP Complete"></a>
   <a class="hdr3-logo hdr3-logo-2" href="https://xrpcompleteblog.com" aria-label="XRP Complete Blog"><img src="data:image/png;base64,''' + LOGO_BLACK_B64 + '''" alt="XRP Complete Blog"></a>
   <a class="hdr3-logo hdr3-logo-3" href="/institutional-equivalent-not-set" aria-label="Institutional"><img src="data:image/png;base64,''' + LOGO_SILVER_B64 + '''" alt="XRP"></a>
